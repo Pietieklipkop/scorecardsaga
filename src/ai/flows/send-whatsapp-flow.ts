@@ -49,7 +49,6 @@ const sendWhatsappFlow = ai.defineFlow(
     if (!accountSid || !authToken || !fromNumber) {
         const errorMsg = "Twilio credentials are not configured in environment variables.";
         console.error(errorMsg);
-        // Log this specific configuration error to Firestore
         await addDoc(collection(db, "whatsapp_logs"), {
             to: input.to,
             message: input.message,
@@ -62,26 +61,25 @@ const sendWhatsappFlow = ai.defineFlow(
     }
     
     try {
-        let formattedToNumber = input.to.trim();
-        if (formattedToNumber.startsWith('0')) {
-          formattedToNumber = `+27${formattedToNumber.substring(1)}`;
-        } else if (!formattedToNumber.startsWith('+')) {
-          formattedToNumber = `+${formattedToNumber}`;
+        let to = input.to.trim();
+        // Basic E.164 formatting for local numbers
+        if (to.startsWith('0')) {
+          to = `+27${to.substring(1)}`;
+        } else if (!to.startsWith('+')) {
+          to = `+${to}`;
         }
 
-        const formattedFromNumber = fromNumber.startsWith('whatsapp:') 
-          ? fromNumber 
-          : `whatsapp:${fromNumber}`;
+        const to_number = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
+        const from_number = fromNumber.startsWith('whatsapp:') ? fromNumber : `whatsapp:${fromNumber}`;
 
         const client = new Twilio(accountSid, authToken);
 
         const message = await client.messages.create({
-            from: formattedFromNumber,
-            to: `whatsapp:${formattedToNumber}`,
+            from: from_number,
+            to: to_number,
             body: input.message,
         });
 
-        // Log success to Firestore
         await addDoc(collection(db, "whatsapp_logs"), {
             to: input.to,
             message: input.message,
@@ -97,7 +95,6 @@ const sendWhatsappFlow = ai.defineFlow(
         const errorMessage = error.message || 'An unknown error occurred while sending the message.';
         console.error('Failed to send Twilio message:', errorMessage);
         
-        // Log failure to Firestore
         await addDoc(collection(db, "whatsapp_logs"), {
             to: input.to,
             message: input.message,
