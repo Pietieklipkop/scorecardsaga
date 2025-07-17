@@ -3,11 +3,11 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoginForm } from '@/components/login-form';
+import { SignupForm } from '@/components/signup-form';
 import { Trophy } from 'lucide-react';
 import Link from 'next/link';
 
-export default function LoginPage() {
+export default function SignupPage() {
   
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -17,17 +17,17 @@ export default function LoginPage() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Welcome Back</CardTitle>
-            <CardDescription>Enter your credentials to access your scoreboard.</CardDescription>
+            <CardTitle>Create an Account</CardTitle>
+            <CardDescription>Enter your details to create a new account.</CardDescription>
           </CardHeader>
           <CardContent>
-            <LoginForm />
+            <SignupForm />
           </CardContent>
         </Card>
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className="underline hover:text-primary">
-            Sign up
+          Already have an account?{' '}
+          <Link href="/login" className="underline hover:text-primary">
+            Log in
           </Link>
         </p>
       </div>
