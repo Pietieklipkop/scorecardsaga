@@ -50,28 +50,32 @@ const sendWhatsappFlow = ai.defineFlow(
     if (!accountSid || !authToken || !fromNumber) {
         const errorMsg = "Twilio credentials are not configured in environment variables.";
         console.error(errorMsg);
-        // We can't log to Firestore here if we can't even try to send.
-        // Or we could, but it would be a different kind of log.
-        // For now, just return the error.
+        try {
+            await addDoc(collection(db, "whatsapp_logs"), {
+                to: input.to,
+                message: input.message,
+                success: false,
+                messageId: null,
+                error: errorMsg,
+                timestamp: serverTimestamp(),
+            });
+        } catch (logError) {
+            console.error("Failed to write credential failure log to whatsapp_logs:", logError);
+        }
         return { success: false, error: errorMsg };
     }
     
     try {
-        // Format the 'To' number to E.164
         let formattedToNumber = input.to.trim();
         if (formattedToNumber.startsWith('0')) {
-          // Assuming a South African number if it starts with 0
           formattedToNumber = `+27${formattedToNumber.substring(1)}`;
         } else if (!formattedToNumber.startsWith('+')) {
-          // Add '+' if it's missing, assuming country code is included
           formattedToNumber = `+${formattedToNumber}`;
         }
 
-        // Ensure the 'From' number is correctly prefixed for WhatsApp
         const formattedFromNumber = fromNumber.startsWith('whatsapp:') 
           ? fromNumber 
           : `whatsapp:${fromNumber}`;
-
 
         const client = new Twilio(accountSid, authToken);
 
@@ -83,7 +87,6 @@ const sendWhatsappFlow = ai.defineFlow(
 
         console.log('Message sent successfully with SID:', message.sid);
         
-        // Log success to Firestore
         await addDoc(collection(db, "whatsapp_logs"), {
             to: input.to,
             message: input.message,
@@ -98,7 +101,6 @@ const sendWhatsappFlow = ai.defineFlow(
     } catch (error: any) {
         console.error('Failed to send Twilio message:', error);
         
-        // Log failure to Firestore
         try {
             await addDoc(collection(db, "whatsapp_logs"), {
                 to: input.to,
