@@ -45,7 +45,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
             players.map((player, index) => {
               const rank = index + 1;
               return (
-                <TableRow key={player.email} className="transition-colors hover:bg-muted/50">
+                <TableRow key={player.id || player.email} className="transition-colors hover:bg-muted/50">
                   <TableCell className="font-medium">
                     <div className="flex items-center justify-center">
                         {getRankIndicator(rank)}
@@ -61,7 +61,6 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
                       </Avatar>
                       <div>
                         <div className="font-bold">{player.name} {player.surname}</div>
-                        <div className="text-sm text-muted-foreground">{player.email}</div>
                       </div>
                     </div>
                   </TableCell>
