@@ -6,7 +6,11 @@ export const playerSchema = z.object({
   name: z.string().min(1, "Name is required"),
   surname: z.string().min(1, "Surname is required"),
   email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Invalid phone number"),
+  phone: z.string()
+    .min(12, "Phone number must be at least 12 characters long.")
+    .refine((val) => val.startsWith('+27'), {
+        message: "Phone number must start with the country code +27.",
+    }),
   score: z.coerce.number().int().min(0, "Score must be a positive number"),
 });
 

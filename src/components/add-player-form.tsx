@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,7 +33,7 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
       name: "",
       surname: "",
       email: "",
-      phone: "",
+      phone: "+27",
       score: 0,
     },
   });
@@ -110,7 +111,7 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
                 <Input type="tel" placeholder="+27821234567" {...field} />
               </FormControl>
               <FormDescription>
-                Must be in international E.164 format (e.g. +27...).
+                Must be in international E.164 format and start with +27.
               </FormDescription>
               <FormMessage />
             </FormItem>

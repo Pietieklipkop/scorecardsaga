@@ -61,7 +61,6 @@ const sendWhatsappFlow = ai.defineFlow(
     }
     
     try {
-        // Numbers must be in E.164 format and prefixed with 'whatsapp:'
         const to_number = `whatsapp:${input.to}`;
         const from_number = `whatsapp:${fromNumber}`;
 
@@ -101,4 +100,3 @@ const sendWhatsappFlow = ai.defineFlow(
     }
   }
 );
-
