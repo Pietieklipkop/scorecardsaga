@@ -99,7 +99,8 @@ const sendWhatsappFlow = ai.defineFlow(
         return { success: true, messageId: message.sid };
 
     } catch (error: any) {
-        console.error('Failed to send Twilio message:', error);
+        const errorMessage = error.message || 'An unknown error occurred.';
+        console.error('Failed to send Twilio message:', errorMessage);
         
         try {
             await addDoc(collection(db, "whatsapp_logs"), {
@@ -107,14 +108,14 @@ const sendWhatsappFlow = ai.defineFlow(
                 message: input.message,
                 success: false,
                 messageId: null,
-                error: error.message || 'An unknown error occurred.',
+                error: errorMessage,
                 timestamp: serverTimestamp(),
             });
         } catch (logError) {
             console.error("Failed to write failure log to whatsapp_logs:", logError);
         }
         
-        return { success: false, error: error.message };
+        return { success: false, error: errorMessage };
     }
   }
 );
