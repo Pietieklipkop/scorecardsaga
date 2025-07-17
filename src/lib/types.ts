@@ -39,3 +39,15 @@ export type ScoreUpdateLogEntry = {
 
 
 export type LogEntry = AddLogEntry | DethroneLogEntry | ScoreUpdateLogEntry;
+
+export const whatsappLogSchema = z.object({
+  id: z.string().optional(),
+  to: z.string(),
+  message: z.string(),
+  success: z.boolean(),
+  timestamp: z.date(),
+  messageId: z.string().optional(),
+  error: z.string().optional(),
+});
+
+export type WhatsappLog = z.infer<typeof whatsappLogSchema>;

@@ -1,14 +1,33 @@
+
 "use client";
 
-import type { Player } from "@/lib/types";
+import { useState, useEffect } from "react";
+import type { Player, WhatsappLog } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Download, Projector } from "lucide-react";
+import { Download, Projector, MessageSquareWarning } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface FooterProps {
   players: Player[];
 }
 
 export function Footer({ players }: FooterProps) {
+  const { user } = useAuth();
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const q = query(collection(db, "whatsapp_logs"), where("success", "==", false));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      setHasError(!querySnapshot.empty);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
   const exportToCSV = () => {
     const headers = ["Name", "Surname", "Email", "Phone", "Score"];
     const rows = players.map((player) => [
@@ -36,6 +55,10 @@ export function Footer({ players }: FooterProps) {
     window.open("/scoreboard", "_blank");
   };
 
+  const openWhatsappLogs = () => {
+    window.open("/whatsapp-logs", "_blank");
+  };
+
   return (
     <footer className="w-full border-t bg-background">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -43,6 +66,16 @@ export function Footer({ players }: FooterProps) {
           &copy; {new Date().getFullYear()} Scoreboard Saga. All rights reserved.
         </p>
         <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={openWhatsappLogs} className="relative">
+            <MessageSquareWarning className="mr-2 h-4 w-4" />
+            WhatsApp Logs
+            {hasError && (
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              </span>
+            )}
+          </Button>
           <Button variant="outline" onClick={openScoreboard}>
             <Projector className="mr-2 h-4 w-4" />
             Projector View
