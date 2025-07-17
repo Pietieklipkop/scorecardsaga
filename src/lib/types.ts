@@ -16,7 +16,7 @@ export const playerSchema = z.object({
 
 export type Player = z.infer<typeof playerSchema>;
 
-// Log Entry Types
+// For local state management and event detection (not stored in DB)
 export type AddLogEntry = {
   id: string;
   type: "add";
@@ -41,8 +41,43 @@ export type ScoreUpdateLogEntry = {
   scoreChange: number;
 };
 
-
 export type LogEntry = AddLogEntry | DethroneLogEntry | ScoreUpdateLogEntry;
+
+
+// Schema for data stored in Firestore `activity_logs` collection
+const activityLogPlayerSchema = playerSchema.omit({ id: true }).extend({
+    id: z.string(),
+});
+
+const addLogDataSchema = z.object({
+  type: z.literal("add"),
+  player: activityLogPlayerSchema,
+});
+
+const dethroneLogDataSchema = z.object({
+  type: z.literal("dethrone"),
+  newPlayer: activityLogPlayerSchema,
+  oldPlayer: activityLogPlayerSchema,
+  rank: z.number(),
+});
+
+const scoreUpdateLogDataSchema = z.object({
+  type: z.literal("score_update"),
+  player: activityLogPlayerSchema,
+  scoreChange: z.number(),
+});
+
+const activityLogEntrySchema = z.discriminatedUnion("type", [
+  addLogDataSchema,
+  dethroneLogDataSchema,
+  scoreUpdateLogDataSchema,
+]).and(z.object({
+  id: z.string().optional(), // Now optional as it's the doc ID
+  timestamp: z.date(),
+}));
+
+export type ActivityLogEntryData = z.infer<typeof activityLogEntrySchema>;
+
 
 export const whatsappLogSchema = z.object({
   id: z.string().optional(),
@@ -50,8 +85,8 @@ export const whatsappLogSchema = z.object({
   message: z.string(),
   success: z.boolean(),
   timestamp: z.date(),
-  messageId: z.string().optional(),
-  error: z.string().optional(),
+  messageId: z.string().optional().nullable(),
+  error: z.string().optional().nullable(),
 });
 
 export type WhatsappLog = z.infer<typeof whatsappLogSchema>;

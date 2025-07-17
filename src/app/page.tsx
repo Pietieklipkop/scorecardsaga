@@ -2,9 +2,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { Player, LogEntry } from "@/lib/types";
+import type { Player, LogEntry, ActivityLogEntryData } from "@/lib/types";
 import { Leaderboard } from "@/components/leaderboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/header";
@@ -28,7 +28,6 @@ export default function Home() {
   const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
   const prevPlayersRef = useRef<Player[]>([]);
 
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
@@ -87,17 +86,15 @@ export default function Home() {
       return;
     }
   
-    let newLog: LogEntry | null = null;
+    let newLogData: Omit<ActivityLogEntryData, 'timestamp' | 'id'> | null = null;
   
     // Check for a player addition
     if (newPlayers.length > oldPlayers.length) {
       const addedPlayer = newPlayers.find(p => !oldPlayers.some(op => op.id === p.id));
       if (addedPlayer) {
-        newLog = {
-          id: Date.now().toString(),
+        newLogData = {
           type: "add",
-          timestamp: new Date(),
-          player: addedPlayer,
+          player: { id: addedPlayer.id!, name: addedPlayer.name, surname: addedPlayer.surname, email: addedPlayer.email, phone: addedPlayer.phone, score: addedPlayer.score },
         };
       }
     } else if (newPlayers.length === oldPlayers.length) { // Check for score update
@@ -113,45 +110,38 @@ export default function Home() {
         const oldTop3 = oldPlayers.slice(0, 3);
         const newTop3 = newPlayers.slice(0, 3);
   
-        // Find if a player in the new top 3 was not in the old top 3 OR has a different rank
         for (let i = 0; i < newTop3.length; i++) {
           const newPlayerAtRank = newTop3[i];
           const oldPlayerAtRank = oldTop3.length > i ? oldTop3[i] : null;
           
           if (newPlayerAtRank.id !== oldPlayerAtRank?.id) {
-            // A dethroning or shift happened. The player who was at this rank got pushed down.
-            if (oldPlayerAtRank) {
-              // We only care if the person who caused the change is the one we're tracking
-              if (newPlayerAtRank.id === updatedPlayer.id) {
-                newLog = {
-                  id: Date.now().toString(),
-                  type: "dethrone",
-                  timestamp: new Date(),
-                  newPlayer: updatedPlayer,
-                  oldPlayer: oldPlayerAtRank,
-                  rank: i + 1,
-                };
-                break; // Found our log event, no need to check further
-              }
+            if (oldPlayerAtRank && newPlayerAtRank.id === updatedPlayer.id) {
+              newLogData = {
+                type: "dethrone",
+                newPlayer: { id: updatedPlayer.id!, name: updatedPlayer.name, surname: updatedPlayer.surname, email: updatedPlayer.email, phone: updatedPlayer.phone, score: updatedPlayer.score },
+                oldPlayer: { id: oldPlayerAtRank.id!, name: oldPlayerAtRank.name, surname: oldPlayerAtRank.surname, email: oldPlayerAtRank.email, phone: oldPlayerAtRank.phone, score: oldPlayerAtRank.score },
+                rank: i + 1,
+              };
+              break; 
             }
           }
         }
   
-        // If no dethroning was logged, it was a simple score update
-        if (!newLog) {
-          newLog = {
-            id: Date.now().toString(),
+        if (!newLogData) {
+          newLogData = {
             type: 'score_update',
-            timestamp: new Date(),
-            player: updatedPlayer,
+            player: { id: updatedPlayer.id!, name: updatedPlayer.name, surname: updatedPlayer.surname, email: updatedPlayer.email, phone: updatedPlayer.phone, score: updatedPlayer.score },
             scoreChange: scoreDiff,
           };
         }
       }
     }
   
-    if (newLog) {
-      setLogs(prevLogs => [newLog!, ...prevLogs].slice(0, 10));
+    if (newLogData) {
+      addDoc(collection(db, "activity_logs"), {
+        ...newLogData,
+        timestamp: serverTimestamp(),
+      });
     }
   
     prevPlayersRef.current = newPlayers;
@@ -189,7 +179,7 @@ export default function Home() {
             )}
           </div>
           <div className="lg:w-1/3">
-            <ActivityLog logs={logs} onSendWhatsapp={handleSendWhatsappClick} />
+            <ActivityLog onSendWhatsapp={handleSendWhatsappClick} />
           </div>
         </div>
       </main>

@@ -1,9 +1,20 @@
 
 "use client";
 
-import type { Player, LogEntry } from "@/lib/types";
+import type { Player, ActivityLogEntryData } from "@/lib/types";
+import { useState, useEffect } from "react";
+import { collection, query, onSnapshot, orderBy, where, Timestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useAuth } from "@/hooks/use-auth";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -11,10 +22,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { History, Medal, UserPlus, ArrowUpCircle } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
+import { History, Medal, UserPlus, ArrowUpCircle, CalendarIcon } from "lucide-react";
+import { format, formatDistanceToNow, startOfDay, endOfDay } from "date-fns";
 
-const PlayerTooltip = ({ player, children }: { player: Player, children: React.ReactNode }) => (
+const PlayerTooltip = ({ player, children }: { player: Omit<Player, 'id'>, children: React.ReactNode }) => (
   <TooltipProvider delayDuration={100}>
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
@@ -39,7 +51,7 @@ const getRankString = (rank: number) => {
   return `${rank}th place`;
 }
 
-const getLogIcon = (type: LogEntry['type']) => {
+const getLogIcon = (type: ActivityLogEntryData['type']) => {
     switch (type) {
         case 'add':
             return <UserPlus className="h-4 w-4 text-primary" />;
@@ -57,16 +69,83 @@ const WhatsappIcon = () => (
 );
 
 
-export function ActivityLog({ logs, onSendWhatsapp }: { logs: LogEntry[], onSendWhatsapp?: (dethronedPlayer: Player, newPlayer: Player) => void }) {
+export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPlayer: Player, newPlayer: Player) => void }) {
+  const { user, loading: authLoading } = useAuth();
+  const [logs, setLogs] = useState<ActivityLogEntryData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+
+  useEffect(() => {
+    if (user && selectedDate) {
+      setLoading(true);
+      const startOfSelectedDay = startOfDay(selectedDate);
+      const endOfSelectedDay = endOfDay(selectedDate);
+
+      const q = query(
+        collection(db, "activity_logs"), 
+        where("timestamp", ">=", Timestamp.fromDate(startOfSelectedDay)),
+        where("timestamp", "<=", Timestamp.fromDate(endOfSelectedDay)),
+        orderBy("timestamp", "desc")
+      );
+
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const logsData: ActivityLogEntryData[] = [];
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            logsData.push({ 
+                id: doc.id, 
+                ...data,
+                timestamp: data.timestamp?.toDate() // Convert Firestore Timestamp to Date
+            } as ActivityLogEntryData);
+        });
+        setLogs(logsData);
+        setLoading(false);
+      }, (error) => {
+        console.error("Error fetching activity logs:", error);
+        setLoading(false);
+      });
+
+      return () => unsubscribe();
+    } else if (!authLoading) {
+        setLoading(false);
+    }
+  }, [user, authLoading, selectedDate]);
+
+
   return (
     <Card className="shadow-lg">
-      <CardHeader className="flex flex-row items-center gap-3">
-        <History className="h-6 w-6 text-primary" />
-        <CardTitle>Activity Log</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center gap-3">
+            <History className="h-6 w-6 text-primary" />
+            <CardTitle>Activity Log</CardTitle>
+        </div>
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button variant="outline" size="sm">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP") : "Select Date"}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+                <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    initialFocus
+                    disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                />
+            </PopoverContent>
+        </Popover>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-96 pr-4">
-            {logs.length > 0 ? (
+            {loading ? (
+                 <div className="space-y-4 pt-4">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                 </div>
+            ) : logs.length > 0 ? (
                 <div className="space-y-6 relative">
                     <div className="absolute left-3.5 top-2 h-full w-0.5 bg-border"></div>
                     {logs.map((log) => (
@@ -112,7 +191,7 @@ export function ActivityLog({ logs, onSendWhatsapp }: { logs: LogEntry[], onSend
                                             </PlayerTooltip>
                                             's score increased by{" "}
                                             <span className="font-semibold text-green-600">
-                                                {log.scoreChange.toLocaleString()}
+                                                +{log.scoreChange.toLocaleString()}
                                             </span>.
                                         </>
                                     )}
@@ -121,7 +200,7 @@ export function ActivityLog({ logs, onSendWhatsapp }: { logs: LogEntry[], onSend
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => onSendWhatsapp(log.oldPlayer, log.newPlayer)}>
+                                                <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => onSendWhatsapp(log.oldPlayer as Player, log.newPlayer as Player)}>
                                                     <WhatsappIcon />
                                                 </Button>
                                             </TooltipTrigger>
@@ -141,7 +220,7 @@ export function ActivityLog({ logs, onSendWhatsapp }: { logs: LogEntry[], onSend
                 </div>
             ) : (
                 <div className="flex h-48 items-center justify-center text-center text-muted-foreground">
-                    <p>No activity yet. <br /> Add a player to see the log update!</p>
+                    <p>No activity found for {selectedDate ? format(selectedDate, "PPP") : 'the selected date'}.</p>
                 </div>
             )}
         </ScrollArea>
