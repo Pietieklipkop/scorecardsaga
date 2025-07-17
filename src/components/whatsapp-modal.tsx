@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { sendWhatsappMessage } from "@/ai/flows/send-whatsapp-flow";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { Info } from "lucide-react";
 
 interface WhatsappModalProps {
     dethronedPlayer: Player;
@@ -29,7 +31,7 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer }: WhatsappMod
             if (result.success) {
                 toast({
                     title: "Message Sent!",
-                    description: `A WhatsApp message has been sent to ${dethronedPlayer.name}.`,
+                    description: `A WhatsApp message has been sent to ${dethronedPlayer.name}. ${result.error || ''}`,
                 });
             } else {
                 throw new Error(result.error || "An unknown error occurred.");
@@ -39,7 +41,7 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer }: WhatsappMod
             toast({
                 variant: "destructive",
                 title: "Error Sending Message",
-                description: "Could not send WhatsApp message. Please check the console for details.",
+                description: String(error.message || "Could not send WhatsApp message. Please check logs for details."),
             });
         } finally {
             setIsSending(false);
@@ -53,8 +55,15 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer }: WhatsappMod
                     {message}
                 </p>
             </div>
+             <Alert variant="destructive">
+                <Info className="h-4 w-4" />
+                <AlertTitle>Important: Sandbox Mode</AlertTitle>
+                <AlertDescription>
+                    This will only work if <span className="font-bold">{dethronedPlayer.name} ({dethronedPlayer.phone})</span> has joined your Twilio Sandbox.
+                </AlertDescription>
+            </Alert>
             <p className="text-sm text-muted-foreground">
-                Clicking the button will send the above message via WhatsApp to <span className="font-semibold">{dethronedPlayer.name}</span> at <span className="font-semibold">{dethronedPlayer.phone}</span>.
+                Clicking the button will attempt to send the above message via WhatsApp.
             </p>
             <Button onClick={handleSend} className="w-full" disabled={isSending}>
                 {isSending ? "Sending..." : "Send WhatsApp Notification"}

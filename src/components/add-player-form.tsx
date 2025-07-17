@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 interface AddPlayerFormProps {
   onFormSubmitted: () => void;
@@ -111,12 +113,19 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
                 <Input type="tel" placeholder="+27821234567" {...field} />
               </FormControl>
               <FormDescription>
-                Must be in international E.164 format and start with +27.
+                Must be in international E.164 format (e.g. +27821234567).
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+         <Alert>
+          <Info className="h-4 w-4" />
+          <AlertTitle>Twilio Sandbox Notice</AlertTitle>
+          <AlertDescription>
+            For a player to receive WhatsApp messages, they must first send the join code to the Twilio Sandbox number.
+          </AlertDescription>
+        </Alert>
         <FormField
           control={form.control}
           name="score"
