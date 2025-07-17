@@ -47,13 +47,16 @@ const sendWhatsappFlow = ai.defineFlow(
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     const fromNumber = process.env.TWILIO_WHATSAPP_NUMBER;
 
-    let result: SendWhatsappOutput;
+    if (!accountSid || !authToken || !fromNumber) {
+        const errorMsg = "Twilio credentials are not configured in environment variables.";
+        console.error(errorMsg);
+        // We can't log to Firestore here if we can't even try to send.
+        // Or we could, but it would be a different kind of log.
+        // For now, just return the error.
+        return { success: false, error: errorMsg };
+    }
     
     try {
-        if (!accountSid || !authToken || !fromNumber) {
-            throw new Error("Twilio credentials are not configured in environment variables.");
-        }
-
         // Format the 'To' number to E.164
         let formattedToNumber = input.to.trim();
         if (formattedToNumber.startsWith('0')) {
@@ -79,26 +82,37 @@ const sendWhatsappFlow = ai.defineFlow(
         });
 
         console.log('Message sent successfully with SID:', message.sid);
-        result = { success: true, messageId: message.sid };
+        
+        // Log success to Firestore
+        await addDoc(collection(db, "whatsapp_logs"), {
+            to: input.to,
+            message: input.message,
+            success: true,
+            messageId: message.sid,
+            error: null,
+            timestamp: serverTimestamp(),
+        });
+        
+        return { success: true, messageId: message.sid };
+
     } catch (error: any) {
         console.error('Failed to send Twilio message:', error);
-        result = { success: false, error: error.message };
+        
+        // Log failure to Firestore
+        try {
+            await addDoc(collection(db, "whatsapp_logs"), {
+                to: input.to,
+                message: input.message,
+                success: false,
+                messageId: null,
+                error: error.message || 'An unknown error occurred.',
+                timestamp: serverTimestamp(),
+            });
+        } catch (logError) {
+            console.error("Failed to write failure log to whatsapp_logs:", logError);
+        }
+        
+        return { success: false, error: error.message };
     }
-
-    // Log the result to Firestore
-    try {
-      await addDoc(collection(db, "whatsapp_logs"), {
-        to: input.to,
-        message: input.message,
-        success: result.success,
-        messageId: result.messageId || null,
-        error: result.error || null,
-        timestamp: serverTimestamp(),
-      });
-    } catch (logError) {
-      console.error("Failed to write to whatsapp_logs:", logError);
-    }
-
-    return result;
   }
 );
