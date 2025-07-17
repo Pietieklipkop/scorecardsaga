@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Player, LogEntry } from "@/lib/types";
@@ -9,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { History, Medal, UserPlus } from "lucide-react";
+import { History, Medal, UserPlus, ArrowUpCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 const PlayerTooltip = ({ player, children }: { player: Player, children: React.ReactNode }) => (
@@ -37,6 +38,19 @@ const getRankString = (rank: number) => {
   return `${rank}th place`;
 }
 
+const getLogIcon = (type: LogEntry['type']) => {
+    switch (type) {
+        case 'add':
+            return <UserPlus className="h-4 w-4 text-primary" />;
+        case 'dethrone':
+            return <Medal className="h-4 w-4 text-primary" />;
+        case 'score_update':
+            return <ArrowUpCircle className="h-4 w-4 text-primary" />;
+        default:
+            return null;
+    }
+}
+
 export function ActivityLog({ logs }: { logs: LogEntry[] }) {
   return (
     <Card className="shadow-lg">
@@ -52,7 +66,7 @@ export function ActivityLog({ logs }: { logs: LogEntry[] }) {
                     {logs.map((log) => (
                     <div key={log.id} className="flex items-start gap-4 relative">
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 z-10">
-                            {log.type === 'add' ? <UserPlus className="h-4 w-4 text-primary" /> : <Medal className="h-4 w-4 text-primary" />}
+                            {getLogIcon(log.type)}
                         </div>
                         <div className="flex-1 space-y-1 pt-1">
                         <p className="text-sm">
@@ -81,6 +95,19 @@ export function ActivityLog({ logs }: { logs: LogEntry[] }) {
                                 </PlayerTooltip>
                                 {" "}from {getRankString(log.rank)}.
                             </>
+                            )}
+                            {log.type === 'score_update' && (
+                                <>
+                                    <PlayerTooltip player={log.player}>
+                                        <span className="font-semibold text-foreground hover:underline cursor-pointer">
+                                            {log.player.name} {log.player.surname}
+                                        </span>
+                                    </PlayerTooltip>
+                                    's score increased by{" "}
+                                    <span className="font-semibold text-green-600">
+                                        {log.scoreChange.toLocaleString()}
+                                    </span>.
+                                </>
                             )}
                         </p>
                         <p className="text-xs text-muted-foreground">

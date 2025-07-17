@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 export const playerSchema = z.object({
@@ -28,4 +29,13 @@ export type DethroneLogEntry = {
   rank: number;
 };
 
-export type LogEntry = AddLogEntry | DethroneLogEntry;
+export type ScoreUpdateLogEntry = {
+  id: string;
+  type: "score_update";
+  timestamp: Date;
+  player: Player;
+  scoreChange: number;
+};
+
+
+export type LogEntry = AddLogEntry | DethroneLogEntry | ScoreUpdateLogEntry;

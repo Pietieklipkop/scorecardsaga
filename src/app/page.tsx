@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -11,6 +12,14 @@ import { Footer } from "@/components/footer";
 import { ActivityLog } from "@/components/activity-log";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { UpdateScoreForm } from "@/components/update-score-form";
 
 
 export default function Home() {
@@ -20,6 +29,19 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const prevPlayersRef = useRef<Player[]>([]);
+
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+
+  const handleUpdateScoreClick = (player: Player) => {
+    setSelectedPlayer(player);
+    setIsUpdateDialogOpen(true);
+  };
+
+  const handleUpdateFormSubmitted = () => {
+    setIsUpdateDialogOpen(false);
+    setSelectedPlayer(null);
+  }
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -48,15 +70,15 @@ export default function Home() {
 
     const oldPlayers = prevPlayersRef.current;
     const newPlayers = players;
+    let newLog: LogEntry | null = null;
+
 
     if (oldPlayers.length > 0 && newPlayers.length > oldPlayers.length) {
       const addedPlayer = newPlayers.find(p => !oldPlayers.some(op => op.id === p.id));
       
       if (addedPlayer) {
         const newRank = newPlayers.findIndex(p => p.id === addedPlayer.id) + 1;
-        
-        let newLog: LogEntry | null = null;
-        
+                
         if (newRank >= 1 && newRank <= 3) {
           const oldPlayerAtRank = oldPlayers[newRank - 1];
           if (oldPlayerAtRank && oldPlayerAtRank.id !== addedPlayer.id) {
@@ -79,10 +101,31 @@ export default function Home() {
             player: addedPlayer,
           };
         }
-
-        setLogs(prevLogs => [newLog!, ...prevLogs].slice(0, 10));
       }
+    } else if (oldPlayers.length > 0) {
+        const updatedPlayer = newPlayers.find(np => {
+            const op = oldPlayers.find(op => op.id === np.id);
+            return op && op.score !== np.score;
+        });
+
+        if (updatedPlayer) {
+            const oldPlayer = oldPlayers.find(op => op.id === updatedPlayer.id)!;
+            const scoreDiff = updatedPlayer.score - oldPlayer.score;
+
+            newLog = {
+                id: Date.now().toString(),
+                type: 'score_update',
+                timestamp: new Date(),
+                player: updatedPlayer,
+                scoreChange: scoreDiff,
+            };
+        }
     }
+
+    if (newLog) {
+      setLogs(prevLogs => [newLog!, ...prevLogs].slice(0, 10));
+    }
+
 
     prevPlayersRef.current = newPlayers;
   }, [players, loading, user]);
@@ -115,7 +158,7 @@ export default function Home() {
                 <Skeleton className="h-12 w-full" />
               </div>
             ) : (
-              <Leaderboard players={players} />
+              <Leaderboard players={players} onUpdateScore={handleUpdateScoreClick} />
             )}
           </div>
           <div className="lg:w-1/3">
@@ -124,6 +167,18 @@ export default function Home() {
         </div>
       </main>
       <Footer players={players} />
+
+      <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Update Score for {selectedPlayer?.name} {selectedPlayer?.surname}</DialogTitle>
+            <DialogDescription>
+              Enter the new total score for the player. It must be higher than the current score.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedPlayer && <UpdateScoreForm player={selectedPlayer} onFormSubmitted={handleUpdateFormSubmitted} />}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

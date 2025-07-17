@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Player } from "@/lib/types";
@@ -11,10 +12,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Medal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Medal, TrendingUp } from "lucide-react";
 
 interface LeaderboardProps {
   players: Player[];
+  onUpdateScore: (player: Player) => void;
 }
 
 const getRankIndicator = (rank: number) => {
@@ -25,7 +28,7 @@ const getRankIndicator = (rank: number) => {
 };
 
 
-export function Leaderboard({ players }: LeaderboardProps) {
+export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
   return (
     <div className="rounded-xl border bg-card text-card-foreground shadow-lg">
       <Table>
@@ -34,6 +37,7 @@ export function Leaderboard({ players }: LeaderboardProps) {
             <TableHead className="w-[80px] text-center">Rank</TableHead>
             <TableHead>Player</TableHead>
             <TableHead className="text-right">Score</TableHead>
+            <TableHead className="w-[150px] text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -66,12 +70,18 @@ export function Leaderboard({ players }: LeaderboardProps) {
                       {player.score.toLocaleString()}
                     </Badge>
                   </TableCell>
+                  <TableCell className="text-center">
+                    <Button variant="outline" size="sm" onClick={() => onUpdateScore(player)}>
+                      <TrendingUp className="mr-2 h-4 w-4" />
+                      Update
+                    </Button>
+                  </TableCell>
                 </TableRow>
               );
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={3} className="h-48 text-center text-muted-foreground">
+              <TableCell colSpan={4} className="h-48 text-center text-muted-foreground">
                 The leaderboard is empty. Add a player to get started!
               </TableCell>
             </TableRow>
