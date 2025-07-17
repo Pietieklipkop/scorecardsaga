@@ -12,6 +12,9 @@ export const playerSchema = z.object({
         message: "Phone number must start with the country code +27.",
     }),
   score: z.coerce.number().int().min(0, "Score must be a positive number"),
+  termsAccepted: z.boolean().refine((val) => val === true, {
+    message: "You must accept the terms and conditions to continue.",
+  }),
 });
 
 export type Player = z.infer<typeof playerSchema>;
@@ -45,7 +48,7 @@ export type LogEntry = AddLogEntry | DethroneLogEntry | ScoreUpdateLogEntry;
 
 
 // Schema for data stored in Firestore `activity_logs` collection
-const activityLogPlayerSchema = playerSchema.omit({ id: true }).extend({
+const activityLogPlayerSchema = playerSchema.omit({ id: true, termsAccepted: true }).extend({
     id: z.string(),
 });
 

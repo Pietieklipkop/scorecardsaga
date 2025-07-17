@@ -22,6 +22,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
+import { Checkbox } from "./ui/checkbox";
+import Link from "next/link";
 
 interface AddPlayerFormProps {
   onFormSubmitted: () => void;
@@ -37,12 +39,14 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
       email: "",
       phone: "+27",
       score: 0,
+      termsAccepted: false,
     },
   });
 
   async function onSubmit(data: Player) {
     try {
-      await addDoc(collection(db, "players"), data);
+      const { termsAccepted, ...playerData } = data;
+      await addDoc(collection(db, "players"), playerData);
       toast({
         title: "Player Added",
         description: `${data.name} ${data.surname} has been added to the scoreboard.`,
@@ -136,6 +140,37 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
                 <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="termsAccepted"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  Accept terms and conditions
+                </FormLabel>
+                <FormDescription>
+                  You agree to our{" "}
+                  <Link href="#" className="underline hover:text-primary">
+                    Terms of Service
+                  </Link>
+                  {" and "}
+                  <Link href="#" className="underline hover:text-primary">
+                    Privacy Policy
+                  </Link>
+                  .
+                </FormDescription>
+                <FormMessage />
+              </div>
             </FormItem>
           )}
         />
