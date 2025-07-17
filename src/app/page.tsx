@@ -78,79 +78,82 @@ export default function Home() {
 
   useEffect(() => {
     if (loading || !user) return;
-
+  
     const oldPlayers = prevPlayersRef.current;
     const newPlayers = players;
+  
+    if (oldPlayers.length === 0) {
+      prevPlayersRef.current = newPlayers;
+      return;
+    }
+  
     let newLog: LogEntry | null = null;
-
-    if (oldPlayers.length > 0 && newPlayers.length > oldPlayers.length) {
+  
+    // Check for a player addition
+    if (newPlayers.length > oldPlayers.length) {
       const addedPlayer = newPlayers.find(p => !oldPlayers.some(op => op.id === p.id));
       if (addedPlayer) {
-        const newRank = newPlayers.findIndex(p => p.id === addedPlayer.id) + 1;
-        if (newRank >= 1 && newRank <= 3) {
-          const oldPlayerAtRank = oldPlayers[newRank - 1];
-          if (oldPlayerAtRank && oldPlayerAtRank.id !== addedPlayer.id) {
-            newLog = {
-              id: Date.now().toString(),
-              type: "dethrone",
-              timestamp: new Date(),
-              newPlayer: addedPlayer,
-              oldPlayer: oldPlayerAtRank,
-              rank: newRank,
-            };
+        newLog = {
+          id: Date.now().toString(),
+          type: "add",
+          timestamp: new Date(),
+          player: addedPlayer,
+        };
+      }
+    } else if (newPlayers.length === oldPlayers.length) { // Check for score update
+      const updatedPlayer = newPlayers.find(np => {
+        const op = oldPlayers.find(op => op.id === np.id);
+        return op && op.score !== np.score;
+      });
+  
+      if (updatedPlayer) {
+        const scoreDiff = updatedPlayer.score - (oldPlayers.find(op => op.id === updatedPlayer.id)?.score || 0);
+  
+        // Check for dethroning in top 3
+        const oldTop3 = oldPlayers.slice(0, 3);
+        const newTop3 = newPlayers.slice(0, 3);
+  
+        // Find if a player in the new top 3 was not in the old top 3 OR has a different rank
+        for (let i = 0; i < newTop3.length; i++) {
+          const newPlayerAtRank = newTop3[i];
+          const oldPlayerAtRank = oldTop3.length > i ? oldTop3[i] : null;
+          
+          if (newPlayerAtRank.id !== oldPlayerAtRank?.id) {
+            // A dethroning or shift happened. The player who was at this rank got pushed down.
+            if (oldPlayerAtRank) {
+              // We only care if the person who caused the change is the one we're tracking
+              if (newPlayerAtRank.id === updatedPlayer.id) {
+                newLog = {
+                  id: Date.now().toString(),
+                  type: "dethrone",
+                  timestamp: new Date(),
+                  newPlayer: updatedPlayer,
+                  oldPlayer: oldPlayerAtRank,
+                  rank: i + 1,
+                };
+                break; // Found our log event, no need to check further
+              }
+            }
           }
         }
+  
+        // If no dethroning was logged, it was a simple score update
         if (!newLog) {
           newLog = {
             id: Date.now().toString(),
-            type: "add",
+            type: 'score_update',
             timestamp: new Date(),
-            player: addedPlayer,
+            player: updatedPlayer,
+            scoreChange: scoreDiff,
           };
         }
       }
-    } else if (oldPlayers.length > 0 && newPlayers.length === oldPlayers.length) {
-        const updatedPlayer = newPlayers.find(np => {
-            const op = oldPlayers.find(op => op.id === np.id);
-            return op && op.score !== np.score;
-        });
-
-        if (updatedPlayer) {
-            const newRank = newPlayers.findIndex(p => p.id === updatedPlayer.id) + 1;
-            const oldPlayerInfo = oldPlayers.find(op => op.id === updatedPlayer.id)!;
-            const scoreDiff = updatedPlayer.score - oldPlayerInfo.score;
-
-            if (newRank >= 1 && newRank <= 3) {
-                const oldPlayerAtRank = oldPlayers.find(p => (players.findIndex(pl => pl.id === p.id) + 1) === newRank && p.id !== updatedPlayer.id);
-
-                if (oldPlayerAtRank && oldPlayerAtRank.id !== updatedPlayer.id) {
-                    newLog = {
-                        id: Date.now().toString(),
-                        type: "dethrone",
-                        timestamp: new Date(),
-                        newPlayer: updatedPlayer,
-                        oldPlayer: oldPlayerAtRank,
-                        rank: newRank,
-                    };
-                }
-            }
-            
-            if (!newLog) {
-                newLog = {
-                    id: Date.now().toString(),
-                    type: 'score_update',
-                    timestamp: new Date(),
-                    player: updatedPlayer,
-                    scoreChange: scoreDiff,
-                };
-            }
-        }
     }
-
+  
     if (newLog) {
       setLogs(prevLogs => [newLog!, ...prevLogs].slice(0, 10));
     }
-
+  
     prevPlayersRef.current = newPlayers;
   }, [players, loading, user]);
 
