@@ -27,6 +27,7 @@ import {
     AlertDialogCancel,
     AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
+import { Clock } from "lucide-react";
 
 export function WhatsappLogsView() {
   const { user, loading: authLoading } = useAuth();
@@ -62,11 +63,13 @@ export function WhatsappLogsView() {
   }, [user, authLoading]);
 
   const handleRowClick = (log: WhatsappLog) => {
-    if (!log.success && log.error) {
+    if (log.error) {
         setSelectedLog(log);
         setIsErrorDialogOpen(true);
     }
   };
+
+  const isQueued = (log: WhatsappLog) => log.error?.includes('Queued');
 
   if (loading) {
     return (
@@ -98,11 +101,16 @@ export function WhatsappLogsView() {
                         <TableRow 
                             key={log.id} 
                             onClick={() => handleRowClick(log)}
-                            className={!log.success && log.error ? "cursor-pointer hover:bg-muted/50" : ""}
+                            className={log.error ? "cursor-pointer hover:bg-muted/50" : ""}
                         >
                             <TableCell>
-                                {log.success ? (
-                                    <Badge variant="default" className="bg-green-500 hover:bg-green-600">Success</Badge>
+                                {log.success && isQueued(log) ? (
+                                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200">
+                                        <Clock className="mr-1 h-3 w-3" />
+                                        Queued
+                                    </Badge>
+                                ) : log.success ? (
+                                    <Badge variant="default" className="bg-green-100 text-green-800 border-green-300 hover:bg-green-200">Success</Badge>
                                 ) : (
                                     <Badge variant="destructive">Failed</Badge>
                                 )}
@@ -110,7 +118,7 @@ export function WhatsappLogsView() {
                             <TableCell className="font-medium">{log.to}</TableCell>
                             <TableCell>{log.timestamp ? format(log.timestamp, "PPP p") : 'No date'}</TableCell>
                             <TableCell className="max-w-xs truncate">
-                                {log.success ? `SID: ${log.messageId}` : log.error}
+                                {log.success ? (log.messageId ? `SID: ${log.messageId}` : log.error) : log.error}
                             </TableCell>
                         </TableRow>
                         ))
@@ -129,9 +137,12 @@ export function WhatsappLogsView() {
         <AlertDialog open={isErrorDialogOpen} onOpenChange={setIsErrorDialogOpen}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Error Details</AlertDialogTitle>
+                    <AlertDialogTitle>{selectedLog?.success ? 'Log Details' : 'Error Details'}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        The full error message for the failed WhatsApp message is shown below.
+                        {selectedLog?.success 
+                            ? "The full details for the log entry are shown below."
+                            : "The full error message for the failed WhatsApp message is shown below."
+                        }
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div className="mt-4 bg-muted/80 p-4 rounded-md">

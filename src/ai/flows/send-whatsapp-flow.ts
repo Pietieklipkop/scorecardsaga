@@ -61,16 +61,16 @@ const sendWhatsappFlow = ai.defineFlow(
     }
     
     try {
-        // Normalize the recipient's phone number
+        // Normalize the recipient's phone number if it's in a local format
         let normalizedTo = input.to.trim();
-        if (normalizedTo.startsWith('0') && normalizedTo.length === 10) {
+        if (normalizedTo.startsWith('0') && (normalizedTo.length === 10 || normalizedTo.length === 9)) {
             normalizedTo = `+27${normalizedTo.substring(1)}`;
         }
 
         const to_number = `whatsapp:${normalizedTo}`;
         
         // The 'from' number should be used directly from the environment variable
-        // as configured in the Twilio WhatsApp Sandbox.
+        // as configured in the Twilio WhatsApp Sandbox, which usually includes the 'whatsapp:' prefix.
         const from_number = fromNumber;
 
         const client = new Twilio(accountSid, authToken);
@@ -93,6 +93,21 @@ const sendWhatsappFlow = ai.defineFlow(
         return { success: true, messageId: message.sid };
 
     } catch (error: any) {
+        // Handle the specific "queued" case (30007) as a success.
+        if (error.code === 30007) {
+            const queuedMessage = 'Message has been queued for delivery.';
+            await addDoc(collection(db, "whatsapp_logs"), {
+                to: input.to,
+                message: input.message,
+                success: true, // Treat as success
+                messageId: null, // SID might not be available yet
+                error: `Status: Queued. (Twilio code: 30007)`,
+                timestamp: serverTimestamp(),
+            });
+            // Return success to the client but with an informational error message.
+            return { success: true, error: queuedMessage };
+        }
+
         const errorMessage = error instanceof Error ? (error.stack || error.message) : String(error);
         console.error('Failed to send Twilio message:', errorMessage);
         
