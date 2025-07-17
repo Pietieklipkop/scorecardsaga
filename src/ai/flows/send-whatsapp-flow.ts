@@ -50,12 +50,22 @@ const sendWhatsappFlow = ai.defineFlow(
         return { success: false, error: errorMsg };
     }
 
+    // Format the phone number to E.164
+    let formattedToNumber = input.to.trim();
+    if (formattedToNumber.startsWith('0')) {
+      // Assuming a South African number if it starts with 0
+      formattedToNumber = `+27${formattedToNumber.substring(1)}`;
+    } else if (!formattedToNumber.startsWith('+')) {
+      // Add '+' if it's missing, assuming country code is included
+      formattedToNumber = `+${formattedToNumber}`;
+    }
+
     const client = new Twilio(accountSid, authToken);
 
     try {
         const message = await client.messages.create({
             from: fromNumber,
-            to: `whatsapp:${input.to}`,
+            to: `whatsapp:${formattedToNumber}`,
             body: input.message,
         });
 
