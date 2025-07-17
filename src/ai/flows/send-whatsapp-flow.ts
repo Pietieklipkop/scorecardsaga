@@ -61,16 +61,9 @@ const sendWhatsappFlow = ai.defineFlow(
     }
     
     try {
-        let to = input.to.trim();
-        // Basic E.164 formatting for local numbers
-        if (to.startsWith('0')) {
-          to = `+27${to.substring(1)}`;
-        } else if (!to.startsWith('+')) {
-          to = `+${to}`;
-        }
-
-        const to_number = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
-        const from_number = fromNumber.startsWith('whatsapp:') ? fromNumber : `whatsapp:${fromNumber}`;
+        // Numbers must be in E.164 format and prefixed with 'whatsapp:'
+        const to_number = `whatsapp:${input.to}`;
+        const from_number = `whatsapp:${fromNumber}`;
 
         const client = new Twilio(accountSid, authToken);
 
@@ -108,3 +101,4 @@ const sendWhatsappFlow = ai.defineFlow(
     }
   }
 );
+

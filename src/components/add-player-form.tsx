@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -106,8 +107,11 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
             <FormItem>
               <FormLabel>Phone Number</FormLabel>
               <FormControl>
-                <Input type="tel" placeholder="123-456-7890" {...field} />
+                <Input type="tel" placeholder="+27821234567" {...field} />
               </FormControl>
+              <FormDescription>
+                Must be in international E.164 format (e.g. +27...).
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
