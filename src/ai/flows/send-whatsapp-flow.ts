@@ -61,7 +61,13 @@ const sendWhatsappFlow = ai.defineFlow(
     }
     
     try {
-        const to_number = `whatsapp:${input.to}`;
+        // Normalize the recipient's phone number
+        let normalizedTo = input.to.trim();
+        if (normalizedTo.startsWith('0') && normalizedTo.length === 10) {
+            normalizedTo = `+27${normalizedTo.substring(1)}`;
+        }
+
+        const to_number = `whatsapp:${normalizedTo}`;
         const from_number = `whatsapp:${fromNumber}`;
 
         const client = new Twilio(accountSid, authToken);
