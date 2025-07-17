@@ -10,3 +10,22 @@ export const playerSchema = z.object({
 });
 
 export type Player = z.infer<typeof playerSchema>;
+
+// Log Entry Types
+export type AddLogEntry = {
+  id: string;
+  type: "add";
+  timestamp: Date;
+  player: Player;
+};
+
+export type DethroneLogEntry = {
+  id: string;
+  type: "dethrone";
+  timestamp: Date;
+  newPlayer: Player;
+  oldPlayer: Player;
+  rank: number;
+};
+
+export type LogEntry = AddLogEntry | DethroneLogEntry;
