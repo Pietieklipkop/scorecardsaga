@@ -2,7 +2,7 @@
 
 import type { Player } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Projector } from "lucide-react";
 
 interface FooterProps {
   players: Player[];
@@ -32,16 +32,26 @@ export function Footer({ players }: FooterProps) {
     document.body.removeChild(link);
   };
 
+  const openScoreboard = () => {
+    window.open("/scoreboard", "_blank");
+  };
+
   return (
     <footer className="w-full border-t bg-background">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <p className="text-sm text-muted-foreground">
           &copy; {new Date().getFullYear()} Scoreboard Saga. All rights reserved.
         </p>
-        <Button variant="outline" onClick={exportToCSV} disabled={players.length === 0}>
-          <Download className="mr-2 h-4 w-4" />
-          Export to CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={openScoreboard}>
+            <Projector className="mr-2 h-4 w-4" />
+            Projector View
+          </Button>
+          <Button variant="outline" onClick={exportToCSV} disabled={players.length === 0}>
+            <Download className="mr-2 h-4 w-4" />
+            Export to CSV
+          </Button>
+        </div>
       </div>
     </footer>
   );
