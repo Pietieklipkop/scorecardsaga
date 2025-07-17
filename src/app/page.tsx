@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import type { Player } from "@/lib/types";
 import { Leaderboard } from "@/components/leaderboard";
 import { AddPlayerForm } from "@/components/add-player-form";
@@ -14,25 +16,31 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { UserPlus, Trophy } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Initial dummy data for demonstration
-const initialPlayers: Player[] = [
-  { name: "Alice", surname: "Smith", email: "alice@example.com", phone: "111-111-1111", score: 1250 },
-  { name: "Bob", surname: "Johnson", email: "bob@example.com", phone: "222-222-2222", score: 1100 },
-  { name: "Charlie", surname: "Brown", email: "charlie@example.com", phone: "333-333-3333", score: 1080 },
-  { name: "Diana", surname: "Prince", email: "diana@example.com", phone: "444-444-4444", score: 950 },
-  { name: "Ethan", surname: "Hunt", email: "ethan@example.com", phone: "555-555-5555", score: 800 },
-];
 
 export default function Home() {
-  const [players, setPlayers] = useState<Player[]>(initialPlayers.sort((a, b) => b.score - a.score));
+  const [players, setPlayers] = useState<Player[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleAddPlayer = (newPlayer: Player) => {
-    setPlayers((prevPlayers) => {
-      const updatedPlayers = [...prevPlayers, newPlayer];
-      return updatedPlayers.sort((a, b) => b.score - a.score);
+  useEffect(() => {
+    const q = query(collection(db, "players"), orderBy("score", "desc"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const playersData: Player[] = [];
+      querySnapshot.forEach((doc) => {
+        playersData.push({ id: doc.id, ...doc.data() } as Player);
+      });
+      setPlayers(playersData);
+      setLoading(false);
     });
+
+    return () => unsubscribe();
+  }, []);
+
+
+  const handlePlayerAdded = () => {
+    setIsDialogOpen(false);
   };
 
   return (
@@ -59,13 +67,22 @@ export default function Home() {
               </DialogDescription>
             </DialogHeader>
             <AddPlayerForm
-              onPlayerAdd={handleAddPlayer}
-              onFormSubmitted={() => setIsDialogOpen(false)}
+              onFormSubmitted={handlePlayerAdded}
             />
           </DialogContent>
         </Dialog>
       </header>
-      <Leaderboard players={players} />
+      {loading ? (
+        <div className="rounded-xl border bg-card text-card-foreground shadow-lg p-4 space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>
+      ) : (
+        <Leaderboard players={players} />
+      )}
     </main>
   );
 }

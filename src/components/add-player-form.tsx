@@ -2,6 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { collection, addDoc } from "firebase/firestore"; 
+import { db } from "@/lib/firebase";
 
 import type { Player } from "@/lib/types";
 import { playerSchema } from "@/lib/types";
@@ -18,13 +20,11 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
 interface AddPlayerFormProps {
-  onPlayerAdd: (player: Player) => void;
   onFormSubmitted: () => void;
 }
 
-export function AddPlayerForm({ onPlayerAdd, onFormSubmitted }: AddPlayerFormProps) {
+export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
   const { toast } = useToast();
-
   const form = useForm<Player>({
     resolver: zodResolver(playerSchema),
     defaultValues: {
@@ -36,14 +36,23 @@ export function AddPlayerForm({ onPlayerAdd, onFormSubmitted }: AddPlayerFormPro
     },
   });
 
-  function onSubmit(data: Player) {
-    onPlayerAdd(data);
-    toast({
-      title: "Player Added",
-      description: `${data.name} ${data.surname} has been added to the scoreboard.`,
-    });
-    form.reset();
-    onFormSubmitted();
+  async function onSubmit(data: Player) {
+    try {
+      await addDoc(collection(db, "players"), data);
+      toast({
+        title: "Player Added",
+        description: `${data.name} ${data.surname} has been added to the scoreboard.`,
+      });
+      form.reset();
+      onFormSubmitted();
+    } catch (error) {
+      console.error("Error adding document: ", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "There was a problem adding the player. Please try again.",
+      });
+    }
   }
 
   return (
@@ -110,13 +119,15 @@ export function AddPlayerForm({ onPlayerAdd, onFormSubmitted }: AddPlayerFormPro
             <FormItem>
               <FormLabel>Score</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="100" {...field} />
+                <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">Add Player to Scoreboard</Button>
+        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? "Adding..." : "Add Player to Scoreboard"}
+        </Button>
       </form>
     </Form>
   );
