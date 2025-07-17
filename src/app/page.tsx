@@ -72,13 +72,10 @@ export default function Home() {
     const newPlayers = players;
     let newLog: LogEntry | null = null;
 
-
     if (oldPlayers.length > 0 && newPlayers.length > oldPlayers.length) {
       const addedPlayer = newPlayers.find(p => !oldPlayers.some(op => op.id === p.id));
-      
       if (addedPlayer) {
         const newRank = newPlayers.findIndex(p => p.id === addedPlayer.id) + 1;
-                
         if (newRank >= 1 && newRank <= 3) {
           const oldPlayerAtRank = oldPlayers[newRank - 1];
           if (oldPlayerAtRank && oldPlayerAtRank.id !== addedPlayer.id) {
@@ -92,7 +89,6 @@ export default function Home() {
             };
           }
         }
-        
         if (!newLog) {
           newLog = {
             id: Date.now().toString(),
@@ -102,30 +98,46 @@ export default function Home() {
           };
         }
       }
-    } else if (oldPlayers.length > 0) {
+    } else if (oldPlayers.length > 0 && newPlayers.length === oldPlayers.length) {
         const updatedPlayer = newPlayers.find(np => {
             const op = oldPlayers.find(op => op.id === np.id);
             return op && op.score !== np.score;
         });
 
         if (updatedPlayer) {
-            const oldPlayer = oldPlayers.find(op => op.id === updatedPlayer.id)!;
-            const scoreDiff = updatedPlayer.score - oldPlayer.score;
+            const newRank = newPlayers.findIndex(p => p.id === updatedPlayer.id) + 1;
+            const oldPlayerInfo = oldPlayers.find(op => op.id === updatedPlayer.id)!;
+            const scoreDiff = updatedPlayer.score - oldPlayerInfo.score;
 
-            newLog = {
-                id: Date.now().toString(),
-                type: 'score_update',
-                timestamp: new Date(),
-                player: updatedPlayer,
-                scoreChange: scoreDiff,
-            };
+            if (newRank >= 1 && newRank <= 3) {
+                const oldPlayerAtRank = oldPlayers[newRank - 1];
+                if (oldPlayerAtRank && oldPlayerAtRank.id !== updatedPlayer.id) {
+                    newLog = {
+                        id: Date.now().toString(),
+                        type: "dethrone",
+                        timestamp: new Date(),
+                        newPlayer: updatedPlayer,
+                        oldPlayer: oldPlayerAtRank,
+                        rank: newRank,
+                    };
+                }
+            }
+            
+            if (!newLog) {
+                newLog = {
+                    id: Date.now().toString(),
+                    type: 'score_update',
+                    timestamp: new Date(),
+                    player: updatedPlayer,
+                    scoreChange: scoreDiff,
+                };
+            }
         }
     }
 
     if (newLog) {
       setLogs(prevLogs => [newLog!, ...prevLogs].slice(0, 10));
     }
-
 
     prevPlayersRef.current = newPlayers;
   }, [players, loading, user]);
