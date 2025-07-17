@@ -20,8 +20,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 import Link from "next/link";
 
@@ -123,13 +121,6 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
             </FormItem>
           )}
         />
-         <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle>Twilio Sandbox Notice</AlertTitle>
-          <AlertDescription>
-            For a player to receive WhatsApp messages, they must first send the join code to the Twilio Sandbox number.
-          </AlertDescription>
-        </Alert>
         <FormField
           control={form.control}
           name="score"
