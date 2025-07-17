@@ -26,7 +26,7 @@ export default function ScoreboardPage() {
   }, []);
 
   return (
-    <main className="container mx-auto px-4 py-8 md:py-12 flex-grow">
+    <main className="container mx-auto px-4 py-8 md:py-12 flex-grow bg-background">
       {loading ? (
         <div className="rounded-xl border bg-card text-card-foreground shadow-lg p-4 space-y-4">
           <Skeleton className="h-12 w-full" />

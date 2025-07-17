@@ -17,7 +17,7 @@ import { Medal, TrendingUp } from "lucide-react";
 
 interface LeaderboardProps {
   players: Player[];
-  onUpdateScore: (player: Player) => void;
+  onUpdateScore?: (player: Player) => void;
 }
 
 const getRankIndicator = (rank: number) => {
@@ -37,7 +37,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
             <TableHead className="w-[80px] text-center">Rank</TableHead>
             <TableHead>Player</TableHead>
             <TableHead className="text-right">Score</TableHead>
-            <TableHead className="w-[150px] text-center">Actions</TableHead>
+            {onUpdateScore && <TableHead className="w-[150px] text-center">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -70,18 +70,20 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
                       {player.score.toLocaleString()}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-center">
-                    <Button variant="outline" size="sm" onClick={() => onUpdateScore(player)}>
-                      <TrendingUp className="mr-2 h-4 w-4" />
-                      Update
-                    </Button>
-                  </TableCell>
+                  {onUpdateScore && (
+                    <TableCell className="text-center">
+                      <Button variant="outline" size="sm" onClick={() => onUpdateScore(player)}>
+                        <TrendingUp className="mr-2 h-4 w-4" />
+                        Update
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               );
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="h-48 text-center text-muted-foreground">
+              <TableCell colSpan={onUpdateScore ? 4 : 3} className="h-48 text-center text-muted-foreground">
                 The leaderboard is empty. Add a player to get started!
               </TableCell>
             </TableRow>
