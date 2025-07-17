@@ -145,11 +145,11 @@ export function WhatsappLogsView() {
                         }
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-                <div className="mt-4 bg-muted/80 p-4 rounded-md">
+                <ScrollArea className="mt-4 max-h-60 w-full rounded-md border p-4">
                     <pre className="text-sm text-foreground whitespace-pre-wrap break-words">
                         <code>{selectedLog?.error}</code>
                     </pre>
-                </div>
+                </ScrollArea>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Close</AlertDialogCancel>
                 </AlertDialogFooter>
