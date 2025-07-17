@@ -50,7 +50,7 @@ const sendWhatsappFlow = ai.defineFlow(
         return { success: false, error: errorMsg };
     }
 
-    // Format the phone number to E.164
+    // Format the 'To' number to E.164
     let formattedToNumber = input.to.trim();
     if (formattedToNumber.startsWith('0')) {
       // Assuming a South African number if it starts with 0
@@ -60,11 +60,17 @@ const sendWhatsappFlow = ai.defineFlow(
       formattedToNumber = `+${formattedToNumber}`;
     }
 
+    // Ensure the 'From' number is correctly prefixed for WhatsApp
+    const formattedFromNumber = fromNumber.startsWith('whatsapp:') 
+      ? fromNumber 
+      : `whatsapp:${fromNumber}`;
+
+
     const client = new Twilio(accountSid, authToken);
 
     try {
         const message = await client.messages.create({
-            from: fromNumber,
+            from: formattedFromNumber,
             to: `whatsapp:${formattedToNumber}`,
             body: input.message,
         });
