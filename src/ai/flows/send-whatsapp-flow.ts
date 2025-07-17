@@ -68,7 +68,10 @@ const sendWhatsappFlow = ai.defineFlow(
         }
 
         const to_number = `whatsapp:${normalizedTo}`;
-        const from_number = `whatsapp:${fromNumber}`;
+        
+        // The 'from' number should be used directly from the environment variable
+        // as configured in the Twilio WhatsApp Sandbox.
+        const from_number = fromNumber;
 
         const client = new Twilio(accountSid, authToken);
 
