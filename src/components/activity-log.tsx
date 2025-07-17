@@ -20,7 +20,7 @@ const PlayerTooltip = ({ player, children }: { player: Player, children: React.R
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipContent className="w-64">
         <div className="flex flex-col space-y-1 p-2">
-          <p className="font-bold text-base">{player.name} {player.surname}</p>
+          <div className="font-bold text-base">{player.name} {player.surname}</div>
           <p className="text-sm text-muted-foreground">{player.email}</p>
           <p className="text-sm text-muted-foreground">{player.phone}</p>
           <p className="text-lg font-bold text-primary mt-2">
@@ -76,7 +76,7 @@ export function ActivityLog({ logs, onSendWhatsapp }: { logs: LogEntry[], onSend
                         </div>
                         <div className="flex-1 space-y-1 pt-1">
                             <div className="flex items-center justify-between">
-                                <p className="text-sm pr-2">
+                                <div className="text-sm pr-2">
                                     {log.type === 'add' && (
                                     <>
                                         <PlayerTooltip player={log.player}>
@@ -116,7 +116,7 @@ export function ActivityLog({ logs, onSendWhatsapp }: { logs: LogEntry[], onSend
                                             </span>.
                                         </>
                                     )}
-                                </p>
+                                </div>
                                 {log.type === 'dethrone' && onSendWhatsapp && (
                                     <TooltipProvider>
                                         <Tooltip>
