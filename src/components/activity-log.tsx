@@ -3,6 +3,7 @@
 
 import type { Player, LogEntry } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -51,7 +52,12 @@ const getLogIcon = (type: LogEntry['type']) => {
     }
 }
 
-export function ActivityLog({ logs }: { logs: LogEntry[] }) {
+const WhatsappIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+);
+
+
+export function ActivityLog({ logs, onSendWhatsapp }: { logs: LogEntry[], onSendWhatsapp?: (dethronedPlayer: Player, newPlayer: Player) => void }) {
   return (
     <Card className="shadow-lg">
       <CardHeader className="flex flex-row items-center gap-3">
@@ -69,50 +75,66 @@ export function ActivityLog({ logs }: { logs: LogEntry[] }) {
                             {getLogIcon(log.type)}
                         </div>
                         <div className="flex-1 space-y-1 pt-1">
-                        <p className="text-sm">
-                            {log.type === 'add' && (
-                            <>
-                                <PlayerTooltip player={log.player}>
-                                    <span className="font-semibold text-foreground hover:underline cursor-pointer">
-                                        {log.player.name} {log.player.surname}
-                                    </span>
-                                </PlayerTooltip>
-                                {" "}was added to the leaderboard.
-                            </>
-                            )}
-                            {log.type === 'dethrone' && (
-                            <>
-                                <PlayerTooltip player={log.newPlayer}>
-                                    <span className="font-semibold text-foreground hover:underline cursor-pointer">
-                                        {log.newPlayer.name} {log.newPlayer.surname}
-                                    </span>
-                                </PlayerTooltip>
-                                {" "}dethroned{" "}
-                                <PlayerTooltip player={log.oldPlayer}>
-                                    <span className="font-semibold text-foreground hover:underline cursor-pointer">
-                                        {log.oldPlayer.name} {log.oldPlayer.surname}
-                                    </span>
-                                </PlayerTooltip>
-                                {" "}from {getRankString(log.rank)}.
-                            </>
-                            )}
-                            {log.type === 'score_update' && (
-                                <>
-                                    <PlayerTooltip player={log.player}>
-                                        <span className="font-semibold text-foreground hover:underline cursor-pointer">
-                                            {log.player.name} {log.player.surname}
-                                        </span>
-                                    </PlayerTooltip>
-                                    's score increased by{" "}
-                                    <span className="font-semibold text-green-600">
-                                        {log.scoreChange.toLocaleString()}
-                                    </span>.
-                                </>
-                            )}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(log.timestamp, { addSuffix: true })}
-                        </p>
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm pr-2">
+                                    {log.type === 'add' && (
+                                    <>
+                                        <PlayerTooltip player={log.player}>
+                                            <span className="font-semibold text-foreground hover:underline cursor-pointer">
+                                                {log.player.name} {log.player.surname}
+                                            </span>
+                                        </PlayerTooltip>
+                                        {" "}was added to the leaderboard.
+                                    </>
+                                    )}
+                                    {log.type === 'dethrone' && (
+                                    <>
+                                        <PlayerTooltip player={log.newPlayer}>
+                                            <span className="font-semibold text-foreground hover:underline cursor-pointer">
+                                                {log.newPlayer.name} {log.newPlayer.surname}
+                                            </span>
+                                        </PlayerTooltip>
+                                        {" "}dethroned{" "}
+                                        <PlayerTooltip player={log.oldPlayer}>
+                                            <span className="font-semibold text-foreground hover:underline cursor-pointer">
+                                                {log.oldPlayer.name} {log.oldPlayer.surname}
+                                            </span>
+                                        </PlayerTooltip>
+                                        {" "}from {getRankString(log.rank)}.
+                                    </>
+                                    )}
+                                    {log.type === 'score_update' && (
+                                        <>
+                                            <PlayerTooltip player={log.player}>
+                                                <span className="font-semibold text-foreground hover:underline cursor-pointer">
+                                                    {log.player.name} {log.player.surname}
+                                                </span>
+                                            </PlayerTooltip>
+                                            's score increased by{" "}
+                                            <span className="font-semibold text-green-600">
+                                                {log.scoreChange.toLocaleString()}
+                                            </span>.
+                                        </>
+                                    )}
+                                </p>
+                                {log.type === 'dethrone' && onSendWhatsapp && (
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => onSendWhatsapp(log.oldPlayer, log.newPlayer)}>
+                                                    <WhatsappIcon />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Send Whatsapp</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(log.timestamp, { addSuffix: true })}
+                            </p>
                         </div>
                     </div>
                     ))}

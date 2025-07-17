@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { UpdateScoreForm } from "@/components/update-score-form";
+import { WhatsappModal } from "@/components/whatsapp-modal";
 
 
 export default function Home() {
@@ -33,6 +34,10 @@ export default function Home() {
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
+  const [isWhatsappDialogOpen, setIsWhatsappDialogOpen] = useState(false);
+  const [dethronedPlayer, setDethronedPlayer] = useState<Player | null>(null);
+  const [dethroningPlayer, setDethroningPlayer] = useState<Player | null>(null);
+
   const handleUpdateScoreClick = (player: Player) => {
     setSelectedPlayer(player);
     setIsUpdateDialogOpen(true);
@@ -41,6 +46,12 @@ export default function Home() {
   const handleUpdateFormSubmitted = () => {
     setIsUpdateDialogOpen(false);
     setSelectedPlayer(null);
+  }
+
+  const handleSendWhatsappClick = (dethronedPlayer: Player, newPlayer: Player) => {
+    setDethronedPlayer(dethronedPlayer);
+    setDethroningPlayer(newPlayer);
+    setIsWhatsappDialogOpen(true);
   }
 
   useEffect(() => {
@@ -110,7 +121,8 @@ export default function Home() {
             const scoreDiff = updatedPlayer.score - oldPlayerInfo.score;
 
             if (newRank >= 1 && newRank <= 3) {
-                const oldPlayerAtRank = oldPlayers[newRank - 1];
+                const oldPlayerAtRank = oldPlayers.find(p => (players.findIndex(pl => pl.id === p.id) + 1) === newRank && p.id !== updatedPlayer.id);
+
                 if (oldPlayerAtRank && oldPlayerAtRank.id !== updatedPlayer.id) {
                     newLog = {
                         id: Date.now().toString(),
@@ -174,7 +186,7 @@ export default function Home() {
             )}
           </div>
           <div className="lg:w-1/3">
-            <ActivityLog logs={logs} />
+            <ActivityLog logs={logs} onSendWhatsapp={handleSendWhatsappClick} />
           </div>
         </div>
       </main>
@@ -189,6 +201,20 @@ export default function Home() {
             </DialogDescription>
           </DialogHeader>
           {selectedPlayer && <UpdateScoreForm player={selectedPlayer} onFormSubmitted={handleUpdateFormSubmitted} />}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isWhatsappDialogOpen} onOpenChange={setIsWhatsappDialogOpen}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Send WhatsApp Notification</DialogTitle>
+             <DialogDescription>
+              A message will be prepared to inform the dethroned player.
+            </DialogDescription>
+          </DialogHeader>
+          {dethronedPlayer && dethroningPlayer && (
+            <WhatsappModal dethronedPlayer={dethronedPlayer} dethroningPlayer={dethroningPlayer} />
+          )}
         </DialogContent>
       </Dialog>
     </>
