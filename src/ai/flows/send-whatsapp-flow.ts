@@ -92,7 +92,7 @@ const sendWhatsappFlow = ai.defineFlow(
         return { success: true, messageId: message.sid };
 
     } catch (error: any) {
-        const errorMessage = error.message || 'An unknown error occurred while sending the message.';
+        const errorMessage = error instanceof Error ? (error.stack || error.message) : String(error);
         console.error('Failed to send Twilio message:', errorMessage);
         
         await addDoc(collection(db, "whatsapp_logs"), {
