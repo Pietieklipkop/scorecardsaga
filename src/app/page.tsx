@@ -94,7 +94,7 @@ export default function Home() {
       if (addedPlayer) {
         newLogData = {
           type: "add",
-          player: { id: addedPlayer.id!, name: addedPlayer.name, surname: addedPlayer.surname, email: addedPlayer.email, phone: addedPlayer.phone, score: addedPlayer.score },
+          player: { id: addedPlayer.id!, name: addedPlayer.name, surname: addedPlayer.surname, email: addedPlayer.email, phone: addedPlayer.phone, score: addedPlayer.score, company: addedPlayer.company },
         };
       }
     } else if (newPlayers.length === oldPlayers.length) { // Check for score update
@@ -118,8 +118,8 @@ export default function Home() {
             if (oldPlayerAtRank && newPlayerAtRank.id === updatedPlayer.id) {
               newLogData = {
                 type: "dethrone",
-                newPlayer: { id: updatedPlayer.id!, name: updatedPlayer.name, surname: updatedPlayer.surname, email: updatedPlayer.email, phone: updatedPlayer.phone, score: updatedPlayer.score },
-                oldPlayer: { id: oldPlayerAtRank.id!, name: oldPlayerAtRank.name, surname: oldPlayerAtRank.surname, email: oldPlayerAtRank.email, phone: oldPlayerAtRank.phone, score: oldPlayerAtRank.score },
+                newPlayer: { id: updatedPlayer.id!, name: updatedPlayer.name, surname: updatedPlayer.surname, email: updatedPlayer.email, phone: updatedPlayer.phone, score: updatedPlayer.score, company: updatedPlayer.company },
+                oldPlayer: { id: oldPlayerAtRank.id!, name: oldPlayerAtRank.name, surname: oldPlayerAtRank.surname, email: oldPlayerAtRank.email, phone: oldPlayerAtRank.phone, score: oldPlayerAtRank.score, company: oldPlayerAtRank.company },
                 rank: i + 1,
               };
               break; 
@@ -130,7 +130,7 @@ export default function Home() {
         if (!newLogData) {
           newLogData = {
             type: 'score_update',
-            player: { id: updatedPlayer.id!, name: updatedPlayer.name, surname: updatedPlayer.surname, email: updatedPlayer.email, phone: updatedPlayer.phone, score: updatedPlayer.score },
+            player: { id: updatedPlayer.id!, name: updatedPlayer.name, surname: updatedPlayer.surname, email: updatedPlayer.email, phone: updatedPlayer.phone, score: updatedPlayer.score, company: updatedPlayer.company },
             scoreChange: scoreDiff,
           };
         }

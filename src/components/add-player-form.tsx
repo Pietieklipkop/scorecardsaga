@@ -22,6 +22,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "./ui/checkbox";
 import Link from "next/link";
+import { Info } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 interface AddPlayerFormProps {
   onFormSubmitted: () => void;
@@ -37,6 +39,7 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
       email: "",
       phone: "+27",
       score: 0,
+      company: "",
       termsAccepted: false,
     },
   });
@@ -123,10 +126,23 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
         />
         <FormField
           control={form.control}
+          name="company"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Company (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="Acme Inc." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="score"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Score</FormLabel>
+              <FormLabel>Initial Score</FormLabel>
               <FormControl>
                 <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} />
               </FormControl>

@@ -61,6 +61,9 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
                       </Avatar>
                       <div>
                         <div className="font-bold">{player.name} {player.surname}</div>
+                        {player.company && (
+                          <div className="text-sm text-muted-foreground">{player.company}</div>
+                        )}
                       </div>
                     </div>
                   </TableCell>

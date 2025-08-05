@@ -33,6 +33,7 @@ const PlayerTooltip = ({ player, children }: { player: Omit<Player, 'id'>, child
       <TooltipContent className="w-64">
         <div className="flex flex-col space-y-1 p-2">
           <div className="font-bold text-base">{player.name} {player.surname}</div>
+          {player.company && <p className="text-sm text-muted-foreground">{player.company}</p>}
           <p className="text-sm text-muted-foreground">{player.email}</p>
           <p className="text-sm text-muted-foreground">{player.phone}</p>
           <p className="text-lg font-bold text-primary mt-2">
