@@ -36,6 +36,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
           <TableRow>
             <TableHead className="w-[80px] text-center">Rank</TableHead>
             <TableHead>Player</TableHead>
+            <TableHead>Company</TableHead>
             <TableHead className="text-right">Score</TableHead>
             {onUpdateScore && <TableHead className="w-[150px] text-center">Actions</TableHead>}
           </TableRow>
@@ -59,13 +60,15 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
                           {player.surname.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <div className="font-bold">{player.name} {player.surname}</div>
-                        {player.company && (
-                          <div className="text-sm text-muted-foreground">{player.company}</div>
-                        )}
-                      </div>
+                      <div className="font-bold">{player.name} {player.surname}</div>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {player.company ? (
+                      <div className="text-sm text-muted-foreground">{player.company}</div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground/50">N/A</div>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <Badge variant="outline" className="text-lg font-bold border-2 border-primary/50 text-primary bg-primary/10">
@@ -85,7 +88,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
             })
           ) : (
             <TableRow>
-              <TableCell colSpan={onUpdateScore ? 4 : 3} className="h-48 text-center text-muted-foreground">
+              <TableCell colSpan={onUpdateScore ? 5 : 4} className="h-48 text-center text-muted-foreground">
                 The leaderboard is empty. Add a player to get started!
               </TableCell>
             </TableRow>
@@ -95,3 +98,4 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
     </div>
   );
 }
+
