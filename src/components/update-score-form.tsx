@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { timeStringToSeconds, formatScore } from "@/lib/utils";
 
 interface UpdateScoreFormProps {
   player: Player;
@@ -29,15 +31,28 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
   const { toast } = useToast();
 
   const formSchema = z.object({
-    score: z.coerce.number()
-        .int()
-        .min(player.score + 1, `Score must be higher than the current score of ${player.score.toLocaleString()}.`),
+    score: z.string()
+      .min(1, "Score is required")
+      .refine(val => /^\d{1,4}$/.test(val), {
+        message: "Score must be up to 4 digits representing MMSS.",
+      })
+      .refine(val => {
+        const paddedVal = val.padStart(4, '0');
+        const seconds = parseInt(paddedVal.substring(2, 4), 10);
+        return seconds < 60;
+      }, {
+        message: "Seconds part (SS) must be between 00 and 59.",
+      })
+      .refine(val => {
+          const newScore = timeStringToSeconds(val);
+          return newScore > player.score;
+      }, `Score must be higher than the current score of ${formatScore(player.score)}.`)
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      score: player.score,
+      score: "0",
     },
   });
 
@@ -53,13 +68,15 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
     
     try {
       const playerRef = doc(db, "players", player.id);
+      const scoreInSeconds = timeStringToSeconds(data.score);
+
       await updateDoc(playerRef, {
-        score: data.score,
+        score: scoreInSeconds,
       });
 
       toast({
         title: "Score Updated",
-        description: `${player.name} ${player.surname}'s score has been updated to ${data.score.toLocaleString()}.`,
+        description: `${player.name} ${player.surname}'s score has been updated to ${formatScore(scoreInSeconds)}.`,
       });
       form.reset();
       onFormSubmitted();
@@ -83,8 +100,11 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
             <FormItem>
               <FormLabel>New Score</FormLabel>
               <FormControl>
-                <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} />
+                <Input type="text" placeholder="MMSS" {...field} />
               </FormControl>
+               <FormDescription>
+                Enter the time as a 4-digit number (e.g., 1827 for 18:27).
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

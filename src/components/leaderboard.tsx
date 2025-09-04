@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Medal, TrendingUp } from "lucide-react";
+import { formatScore } from "@/lib/utils";
 
 interface LeaderboardProps {
   players: Player[];
@@ -72,7 +73,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
                   </TableCell>
                   <TableCell className="text-right">
                     <Badge variant="outline" className="text-lg font-bold border-2 border-primary/50 text-primary bg-primary/10">
-                      {player.score.toLocaleString()}
+                      {formatScore(player.score)}
                     </Badge>
                   </TableCell>
                   {onUpdateScore && (
@@ -98,4 +99,3 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
     </div>
   );
 }
-

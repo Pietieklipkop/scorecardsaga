@@ -7,7 +7,7 @@ import { collection, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 import type { Player } from "@/lib/types";
-import { playerSchema } from "@/lib/types";
+import { addPlayerFormSchema, type AddPlayerFormData } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -22,8 +22,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "./ui/checkbox";
 import Link from "next/link";
-import { Info } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { timeStringToSeconds } from "@/lib/utils";
+
 
 interface AddPlayerFormProps {
   onFormSubmitted: () => void;
@@ -31,23 +31,31 @@ interface AddPlayerFormProps {
 
 export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
   const { toast } = useToast();
-  const form = useForm<Player>({
-    resolver: zodResolver(playerSchema),
+  const form = useForm<AddPlayerFormData>({
+    resolver: zodResolver(addPlayerFormSchema),
     defaultValues: {
       name: "",
       surname: "",
       email: "",
       phone: "+27",
-      score: 0,
+      score: "0",
       company: "",
       termsAccepted: false,
     },
   });
 
-  async function onSubmit(data: Player) {
+  async function onSubmit(data: AddPlayerFormData) {
     try {
       const { termsAccepted, ...playerData } = data;
-      await addDoc(collection(db, "players"), playerData);
+      const scoreInSeconds = timeStringToSeconds(data.score);
+
+      const finalPlayerData: Omit<Player, 'id' | 'termsAccepted'> = {
+        ...playerData,
+        score: scoreInSeconds,
+      };
+      
+      await addDoc(collection(db, "players"), finalPlayerData);
+
       toast({
         title: "Player Added",
         description: `${data.name} ${data.surname} has been added to the scoreboard.`,
@@ -144,8 +152,11 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
             <FormItem>
               <FormLabel>Initial Score</FormLabel>
               <FormControl>
-                <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} />
+                <Input type="text" placeholder="MMSS" {...field} />
               </FormControl>
+              <FormDescription>
+                Enter the time as a 4-digit number (e.g., 1827 for 18:27).
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
