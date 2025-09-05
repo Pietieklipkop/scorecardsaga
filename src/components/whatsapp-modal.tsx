@@ -31,7 +31,7 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer }: WhatsappMod
             if (result.success) {
                 toast({
                     title: "Message Sent!",
-                    description: `A WhatsApp message has been sent to ${dethronedPlayer.name}. ${result.error || ''}`,
+                    description: `A WhatsApp message has been sent to ${dethronedPlayer.name}.`,
                 });
             } else {
                 throw new Error(result.error || "An unknown error occurred.");

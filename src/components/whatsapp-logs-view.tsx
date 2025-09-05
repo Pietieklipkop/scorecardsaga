@@ -27,7 +27,6 @@ import {
     AlertDialogCancel,
     AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
-import { Clock } from "lucide-react";
 
 export function WhatsappLogsView() {
   const { user, loading: authLoading } = useAuth();
@@ -69,8 +68,6 @@ export function WhatsappLogsView() {
     }
   };
 
-  const isQueued = (log: WhatsappLog) => log.error?.includes('Queued');
-
   if (loading) {
     return (
         <div className="rounded-xl border bg-card text-card-foreground shadow p-4 space-y-4">
@@ -84,72 +81,60 @@ export function WhatsappLogsView() {
 
   return (
     <>
-        <ScrollArea className="h-[60vh]">
-            <div className="rounded-xl border bg-card text-card-foreground shadow">
-                <Table>
-                    <TableHeader>
-                    <TableRow>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Recipient</TableHead>
-                        <TableHead>Timestamp</TableHead>
-                        <TableHead>Details</TableHead>
-                    </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                    {logs.length > 0 ? (
-                        logs.map((log) => (
-                        <TableRow 
-                            key={log.id} 
-                            onClick={() => handleRowClick(log)}
-                            className={log.error ? "cursor-pointer hover:bg-muted/50" : ""}
-                        >
-                            <TableCell>
-                                {log.success && isQueued(log) ? (
-                                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200">
-                                        <Clock className="mr-1 h-3 w-3" />
-                                        Queued
-                                    </Badge>
-                                ) : log.success ? (
-                                    <Badge variant="default" className="bg-green-100 text-green-800 border-green-300 hover:bg-green-200">Success</Badge>
-                                ) : (
-                                    <Badge variant="destructive">Failed</Badge>
-                                )}
-                            </TableCell>
-                            <TableCell className="font-medium">{log.to}</TableCell>
-                            <TableCell>{log.timestamp ? format(log.timestamp, "PPP p") : 'No date'}</TableCell>
-                            <TableCell className="max-w-xs truncate">
-                                {log.success ? (log.messageId ? `SID: ${log.messageId}` : log.error) : log.error}
-                            </TableCell>
-                        </TableRow>
-                        ))
-                    ) : (
-                        <TableRow>
-                        <TableCell colSpan={4} className="h-48 text-center text-muted-foreground">
-                           No WhatsApp messages have been sent yet.
+        <div className="rounded-xl border bg-card text-card-foreground shadow">
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Recipient</TableHead>
+                    <TableHead>Timestamp</TableHead>
+                    <TableHead>Details</TableHead>
+                </TableRow>
+                </TableHeader>
+                <TableBody>
+                {logs.length > 0 ? (
+                    logs.map((log) => (
+                    <TableRow 
+                        key={log.id} 
+                        onClick={() => handleRowClick(log)}
+                        className={log.error ? "cursor-pointer hover:bg-muted/50" : ""}
+                    >
+                        <TableCell>
+                            {log.success ? (
+                                <Badge variant="default" className="bg-green-100 text-green-800 border-green-300 hover:bg-green-200">Success</Badge>
+                            ) : (
+                                <Badge variant="destructive">Failed</Badge>
+                            )}
                         </TableCell>
-                        </TableRow>
-                    )}
-                    </TableBody>
-                </Table>
-            </div>
-        </ScrollArea>
+                        <TableCell className="font-medium">{log.to}</TableCell>
+                        <TableCell>{log.timestamp ? format(log.timestamp, "PPP p") : 'No date'}</TableCell>
+                        <TableCell className="max-w-xs truncate">{log.success ? `SID: ${log.messageId}` : log.error}</TableCell>
+                    </TableRow>
+                    ))
+                ) : (
+                    <TableRow>
+                    <TableCell colSpan={4} className="h-48 text-center text-muted-foreground">
+                       No WhatsApp messages have been sent yet.
+                    </TableCell>
+                    </TableRow>
+                )}
+                </TableBody>
+            </Table>
+        </div>
 
         <AlertDialog open={isErrorDialogOpen} onOpenChange={setIsErrorDialogOpen}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>{selectedLog?.success ? 'Log Details' : 'Error Details'}</AlertDialogTitle>
+                    <AlertDialogTitle>Error Details</AlertDialogTitle>
                     <AlertDialogDescription>
-                        {selectedLog?.success 
-                            ? "The full details for the log entry are shown below."
-                            : "The full error message for the failed WhatsApp message is shown below."
-                        }
+                        The full error message for the failed WhatsApp message is shown below.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-                <ScrollArea className="mt-4 max-h-60 w-full rounded-md border p-4">
+                <div className="mt-4 max-h-60 w-full overflow-y-auto rounded-md border p-4">
                     <pre className="text-sm text-foreground whitespace-pre-wrap break-words">
                         <code>{selectedLog?.error}</code>
                     </pre>
-                </ScrollArea>
+                </div>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Close</AlertDialogCancel>
                 </AlertDialogFooter>
