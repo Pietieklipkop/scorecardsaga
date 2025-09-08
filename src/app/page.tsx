@@ -103,7 +103,7 @@ export default function Home() {
         // Send WhatsApp message on player addition
         sendWhatsappMessage({
           to: addedPlayer.phone,
-          message: `Welcome to the Scoreboard Saga, ${addedPlayer.name}! Your score has been added.`
+          message: `Welcome to the Scoreboard Saga, ${addedPlayer.name} ${addedPlayer.surname}! Your score has been added.`
         }).then(result => {
           if (result.success) {
             toast({

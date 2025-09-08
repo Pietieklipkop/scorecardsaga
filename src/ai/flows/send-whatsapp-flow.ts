@@ -1,9 +1,9 @@
 
 'use server';
 /**
- * @fileOverview A flow for sending WhatsApp messages via Twilio.
+ * @fileOverview A flow for sending WhatsApp messages via Twilio and logging the attempt.
  *
- * - sendWhatsappMessage - A function that handles sending the message.
+ * - sendWhatsappMessage - A function that handles sending the message and logging the outcome.
  * - SendWhatsappInput - The input type for the sendWhatsappMessage function.
  * - SendWhatsappOutput - The return type for the sendWhatsappMessage function.
  */
@@ -11,6 +11,8 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { Twilio } from 'twilio';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 // Ensure environment variables are loaded
 import 'dotenv/config';
@@ -45,7 +47,20 @@ const sendWhatsappFlow = ai.defineFlow(
     const fromNumber = process.env.TWILIO_WHATSAPP_NUMBER;
 
     if (!accountSid || !authToken || !fromNumber) {
-      return { success: false, error: "Twilio credentials are not configured in environment variables." };
+      const error = "Twilio credentials are not configured in environment variables.";
+      // Log failure to Firestore
+      try {
+        await addDoc(collection(db, "whatsapp_logs"), {
+            to: input.to,
+            message: input.message,
+            success: false,
+            error: error,
+            timestamp: serverTimestamp(),
+        });
+      } catch (logError) {
+          console.error("Failed to log whatsapp failure to firestore:", logError)
+      }
+      return { success: false, error };
     }
     
     try {
@@ -55,11 +70,36 @@ const sendWhatsappFlow = ai.defineFlow(
         to: `whatsapp:${input.to}`,
         body: input.message,
       });
+
+      // Log success to Firestore
+      await addDoc(collection(db, "whatsapp_logs"), {
+        to: input.to,
+        message: input.message,
+        success: true,
+        messageId: message.sid,
+        timestamp: serverTimestamp(),
+      });
+
       return { success: true, messageId: message.sid };
     } catch (error: any) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error('Failed to send Twilio message:', errorMessage);
+        
+        // Log failure to Firestore
+        try {
+            await addDoc(collection(db, "whatsapp_logs"), {
+                to: input.to,
+                message: input.message,
+                success: false,
+                error: errorMessage,
+                timestamp: serverTimestamp(),
+            });
+        } catch (logError) {
+            console.error("Failed to log whatsapp failure to firestore:", logError)
+        }
+
         return { success: false, error: errorMessage };
     }
   }
 );
+
