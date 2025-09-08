@@ -66,7 +66,7 @@ const sendWhatsappFlow = ai.defineFlow(
     try {
       const client = new Twilio(accountSid, authToken);
       const message = await client.messages.create({
-        from: fromNumber,
+        from: `whatsapp:${fromNumber}`,
         to: `whatsapp:${input.to}`,
         body: input.message,
       });
