@@ -44,7 +44,7 @@ const sendWhatsappFlow = ai.defineFlow(
   async (input) => {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const fromNumber = process.env.TWILIO_WHATSAPP_NUMBER;
+    const fromNumber = process.env.TWILIO_WHATSAPP_NUMBER; // This is YOUR Twilio number
 
     if (!accountSid || !authToken || !fromNumber) {
       const error = "Twilio credentials are not configured in environment variables.";
@@ -66,8 +66,8 @@ const sendWhatsappFlow = ai.defineFlow(
     try {
       const client = new Twilio(accountSid, authToken);
       const message = await client.messages.create({
-        from: `whatsapp:${fromNumber}`,
-        to: `whatsapp:${input.to}`,
+        from: `whatsapp:${fromNumber}`, // Your Twilio number as the sender
+        to: `whatsapp:${input.to}`,   // The player's number as the recipient
         body: input.message,
       });
 
