@@ -45,8 +45,8 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
       })
       .refine(val => {
           const newScore = timeStringToSeconds(val);
-          return newScore > player.score;
-      }, `Score must be higher than the current score of ${formatScore(player.score)}.`)
+          return newScore < player.score;
+      }, `Score must be lower than the current score of ${formatScore(player.score)}.`)
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -103,7 +103,7 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
                 <Input type="text" placeholder="MMSS" {...field} />
               </FormControl>
                <FormDescription>
-                Enter the time as a 4-digit number (e.g., 1827 for 18:27).
+                Enter the time as a 4-digit number (e.g., 0827 for 08:27).
               </FormDescription>
               <FormMessage />
             </FormItem>

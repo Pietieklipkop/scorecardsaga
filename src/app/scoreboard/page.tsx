@@ -13,7 +13,7 @@ export default function ScoreboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, "players"), orderBy("score", "desc"));
+    const q = query(collection(db, "players"), orderBy("score", "asc"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const playersData: Player[] = [];
       querySnapshot.forEach((doc) => {
@@ -33,7 +33,7 @@ export default function ScoreboardPage() {
             <h2 className="text-4xl font-bold text-foreground">Font Required 2</h2>
         </div>
       {loading ? (
-        <div className="rounded-xl border bg-card text-card-foreground shadow-lg p-4 space-y-4">
+        <div className="space-y-4">
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-12 w-full" />

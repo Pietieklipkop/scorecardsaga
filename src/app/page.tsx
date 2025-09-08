@@ -61,7 +61,7 @@ export default function Home() {
 
   useEffect(() => {
     if (user) {
-      const q = query(collection(db, "players"), orderBy("score", "desc"));
+      const q = query(collection(db, "players"), orderBy("score", "asc"));
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const playersData: Player[] = [];
         querySnapshot.forEach((doc) => {
@@ -104,7 +104,7 @@ export default function Home() {
       });
   
       if (updatedPlayer) {
-        const scoreDiff = updatedPlayer.score - (oldPlayers.find(op => op.id === updatedPlayer.id)?.score || 0);
+        const scoreDiff = (oldPlayers.find(op => op.id === updatedPlayer.id)?.score || 0) - updatedPlayer.score;
   
         // Check for dethroning in top 3
         const oldTop3 = oldPlayers.slice(0, 3);
@@ -190,7 +190,7 @@ export default function Home() {
           <DialogHeader>
             <DialogTitle>Update Score for {selectedPlayer?.name} {selectedPlayer?.surname}</DialogTitle>
             <DialogDescription>
-              Enter the new total score for the player. It must be higher than the current score.
+              Enter the new total score for the player. It must be lower than the current score.
             </DialogDescription>
           </DialogHeader>
           {selectedPlayer && <UpdateScoreForm player={selectedPlayer} onFormSubmitted={handleUpdateFormSubmitted} />}

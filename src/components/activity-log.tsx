@@ -23,8 +23,9 @@ import {
 } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { History, Medal, UserPlus, ArrowUpCircle, CalendarIcon } from "lucide-react";
+import { History, Medal, UserPlus, ArrowDownCircle, CalendarIcon } from "lucide-react";
 import { format, formatDistanceToNow, startOfDay, endOfDay } from "date-fns";
+import { formatScore } from "@/lib/utils";
 
 const PlayerTooltip = ({ player, children }: { player: Omit<Player, 'id'>, children: React.ReactNode }) => (
   <TooltipProvider delayDuration={100}>
@@ -37,7 +38,7 @@ const PlayerTooltip = ({ player, children }: { player: Omit<Player, 'id'>, child
           <p className="text-sm text-muted-foreground">{player.email}</p>
           <p className="text-sm text-muted-foreground">{player.phone}</p>
           <p className="text-lg font-bold text-primary mt-2">
-            Score: {player.score.toLocaleString()}
+            Score: {formatScore(player.score)}
           </p>
         </div>
       </TooltipContent>
@@ -59,7 +60,7 @@ const getLogIcon = (type: ActivityLogEntryData['type']) => {
         case 'dethrone':
             return <Medal className="h-4 w-4 text-primary" />;
         case 'score_update':
-            return <ArrowUpCircle className="h-4 w-4 text-primary" />;
+            return <ArrowDownCircle className="h-4 w-4 text-primary" />;
         default:
             return null;
     }
@@ -190,9 +191,9 @@ export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPla
                                                     {log.player.name} {log.player.surname}
                                                 </span>
                                             </PlayerTooltip>
-                                            's score increased by{" "}
+                                            's score improved by{" "}
                                             <span className="font-semibold text-green-600">
-                                                +{log.scoreChange.toLocaleString()}
+                                                {formatScore(log.scoreChange)}
                                             </span>.
                                         </>
                                     )}

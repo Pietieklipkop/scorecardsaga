@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Info } from "lucide-react";
+import { formatScore } from "@/lib/utils";
 
 interface WhatsappModalProps {
     dethronedPlayer: Player;
@@ -18,7 +19,7 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer }: WhatsappMod
     const { toast } = useToast();
     const [isSending, setIsSending] = useState(false);
 
-    const message = `Hi ${dethronedPlayer.name}! Uh oh, looks like ${dethroningPlayer.name} just snatched your spot on the leaderboard with a score of ${dethroningPlayer.score.toLocaleString()}! Don't worry, you can still reclaim your glory. Head back to the game and improve your score!`;
+    const message = `Hi ${dethronedPlayer.name}! Uh oh, looks like ${dethroningPlayer.name} just snatched your spot on the leaderboard with a score of ${formatScore(dethroningPlayer.score)}! Don't worry, you can still reclaim your glory. Head back to the game and improve your score!`;
 
     const handleSend = async () => {
         setIsSending(true);
