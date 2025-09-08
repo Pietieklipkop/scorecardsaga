@@ -3,7 +3,6 @@
 
 import type { Player } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Medal, TrendingUp } from "lucide-react";
 import { formatScore } from "@/lib/utils";
@@ -44,13 +43,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
                       <div className="w-[80px] flex-shrink-0 flex items-center justify-center">
                           {getRankIndicator(rank)}
                       </div>
-                      <div className="flex-1 flex items-center gap-4">
-                          <Avatar className="h-10 w-10">
-                              <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                              {player.name.charAt(0)}
-                              {player.surname.charAt(0)}
-                              </AvatarFallback>
-                          </Avatar>
+                      <div className="flex-1 flex items-center">
                           <div className="font-bold">{player.name} {player.surname}</div>
                       </div>
                       <div className="flex-1">
