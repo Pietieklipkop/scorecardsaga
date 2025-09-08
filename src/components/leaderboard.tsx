@@ -33,8 +33,8 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
   return (
     <div className="rounded-xl border bg-card text-card-foreground shadow-lg relative overflow-auto">
       <Table>
-        <TableHeader className="sticky top-0 z-10">
-          <TableRow className="border-[#718CA9] border rounded-t-sm bg-[#718CA9]/60 hover:bg-[#718CA9]/70">
+        <TableHeader className="sticky top-0 z-10 border-b-[5px] border-transparent">
+          <TableRow className="border-[#718CA9] border rounded-sm bg-[#718CA9]/60 hover:bg-[#718CA9]/70">
             <TableHead className="w-[80px] text-center text-white font-bold">Rank</TableHead>
             <TableHead className="text-white font-bold">Player</TableHead>
             <TableHead className="text-white font-bold">Company</TableHead>
