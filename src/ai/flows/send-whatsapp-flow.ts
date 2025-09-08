@@ -44,10 +44,10 @@ const sendWhatsappFlow = ai.defineFlow(
   async (input) => {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const fromNumber = process.env.TWILIO_WHATSAPP_NUMBER; // This is YOUR Twilio number
+    const fromNumber = "+15558511306"; // Hardcoded Twilio number
 
-    if (!accountSid || !authToken || !fromNumber) {
-      const error = "Twilio credentials are not configured in environment variables.";
+    if (!accountSid || !authToken) {
+      const error = "Twilio Account SID or Auth Token are not configured in environment variables.";
       // Log failure to Firestore
       try {
         await addDoc(collection(db, "whatsapp_logs"), {
