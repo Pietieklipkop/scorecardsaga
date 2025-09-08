@@ -19,7 +19,7 @@ export default function ScoreboardPage() {
       querySnapshot.forEach((doc) => {
         playersData.push({ id: doc.id, ...doc.data() } as Player);
       });
-      setPlayers(playersData);
+      setPlayers(playersData.slice(0, 10)); // Only show top 10
       setLoading(false);
     });
 
