@@ -23,7 +23,7 @@ const getRankIndicator = (rank: number) => {
 export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
   return (
     <div>
-       <div className="flex items-center px-4 h-12 rounded-sm border border-[#718CA9] bg-[#718CA9]/60 text-white font-bold text-sm mb-2.5 font-recife">
+       <div className="flex items-center px-4 h-12 rounded-sm border border-[#718CA9] bg-[#718CA9]/60 text-white font-bold mb-2.5 font-recife">
         <div className="w-[80px] flex-shrink-0 text-center">Rank</div>
         <div className="flex-1">Player</div>
         <div className="flex-1">Company</div>
@@ -43,10 +43,10 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
                       <div className="w-[80px] flex-shrink-0 flex items-center justify-center">
                           {getRankIndicator(rank)}
                       </div>
-                      <div className="flex-1 flex items-center">
+                      <div className="flex-1 flex items-center font-raleway">
                           <div className="font-bold">{player.name} {player.surname}</div>
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 font-raleway">
                           {player.company ? (
                               <div className="text-sm">{player.company}</div>
                           ) : (
