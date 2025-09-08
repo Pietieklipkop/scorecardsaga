@@ -31,24 +31,22 @@ const getRankIndicator = (rank: number) => {
 
 export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
   return (
-    <div className="rounded-xl border bg-card text-card-foreground shadow-lg relative overflow-auto">
+    <div className="rounded-xl border bg-card text-card-foreground shadow-lg relative overflow-hidden">
+       <div className="flex items-center px-4 h-12 rounded-t-lg border border-[#718CA9] bg-[#718CA9]/60 text-white font-bold text-sm">
+        <div className="w-[80px] text-center">Rank</div>
+        <div className="flex-1">Player</div>
+        <div className="flex-1">Company</div>
+        <div className="flex-1 text-right">Score</div>
+        {onUpdateScore && <div className="w-[150px] text-center">Actions</div>}
+      </div>
       <Table>
-        <TableHeader className="sticky top-0 z-10 border-b-[5px] border-transparent">
-          <TableRow className="border-[#718CA9] border rounded-sm bg-[#718CA9]/60 hover:bg-[#718CA9]/70">
-            <TableHead className="w-[80px] text-center text-white font-bold">Rank</TableHead>
-            <TableHead className="text-white font-bold">Player</TableHead>
-            <TableHead className="text-white font-bold">Company</TableHead>
-            <TableHead className="text-right text-white font-bold">Score</TableHead>
-            {onUpdateScore && <TableHead className="w-[150px] text-center text-white font-bold">Actions</TableHead>}
-          </TableRow>
-        </TableHeader>
         <TableBody>
           {players.length > 0 ? (
             players.map((player, index) => {
               const rank = index + 1;
               return (
                 <TableRow key={player.id || player.email} className="transition-colors hover:bg-muted/50">
-                  <TableCell className="font-medium">
+                  <TableCell className="font-medium w-[80px]">
                     <div className="flex items-center justify-center">
                         {getRankIndicator(rank)}
                     </div>
@@ -77,7 +75,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
                     </Badge>
                   </TableCell>
                   {onUpdateScore && (
-                    <TableCell className="text-center">
+                    <TableCell className="text-center w-[150px]">
                       <Button variant="outline" size="sm" onClick={() => onUpdateScore(player)}>
                         <TrendingUp className="mr-2 h-4 w-4" />
                         Update
