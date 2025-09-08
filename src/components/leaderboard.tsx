@@ -16,14 +16,14 @@ const getRankIndicator = (rank: number) => {
   if (rank === 1) return <Medal className="h-6 w-6 text-yellow-500" />;
   if (rank === 2) return <Medal className="h-6 w-6 text-slate-400" />;
   if (rank === 3) return <Medal className="h-6 w-6 text-amber-600" />;
-  return <div className="flex h-6 w-6 items-center justify-center font-bold text-muted-foreground">{rank}</div>;
+  return <div className="flex h-6 w-6 items-center justify-center font-bold text-white">{rank}.</div>;
 };
 
 
 export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
   return (
     <div>
-       <div className="flex items-center px-4 h-12 rounded-sm border border-[#718CA9] bg-[#718CA9]/60 text-white font-bold text-sm">
+       <div className="flex items-center px-4 h-12 rounded-sm border border-[#718CA9] bg-[#718CA9]/60 text-white font-bold text-sm mb-2.5">
         <div className="w-[80px] flex-shrink-0 text-center">Rank</div>
         <div className="flex-1">Player</div>
         <div className="flex-1">Company</div>
@@ -31,7 +31,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
         {onUpdateScore && <div className="w-[150px] flex-shrink-0 text-center">Actions</div>}
       </div>
       
-      <div className="mt-2.5">
+      <div className="space-y-1">
           {players.length > 0 ? (
               players.map((player, index) => {
               const rank = index + 1;
