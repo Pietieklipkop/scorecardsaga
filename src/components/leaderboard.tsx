@@ -31,7 +31,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
         {onUpdateScore && <div className="w-[150px] flex-shrink-0 text-center">Actions</div>}
       </div>
       
-      <div className="space-y-1">
+      <div>
           {players.length > 0 ? (
               players.map((player, index) => {
               const rank = index + 1;
