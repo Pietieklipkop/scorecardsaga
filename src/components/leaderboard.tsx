@@ -31,15 +31,15 @@ const getRankIndicator = (rank: number) => {
 
 export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
   return (
-    <div className="rounded-xl border bg-card text-card-foreground shadow-lg">
+    <div className="rounded-xl border bg-card text-card-foreground shadow-lg relative overflow-auto">
       <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[80px] text-center">Rank</TableHead>
-            <TableHead>Player</TableHead>
-            <TableHead>Company</TableHead>
-            <TableHead className="text-right">Score</TableHead>
-            {onUpdateScore && <TableHead className="w-[150px] text-center">Actions</TableHead>}
+        <TableHeader className="sticky top-0 z-10">
+          <TableRow className="border-[#718CA9] border rounded-t-sm bg-[#718CA9]/60 hover:bg-[#718CA9]/70">
+            <TableHead className="w-[80px] text-center text-white font-bold">Rank</TableHead>
+            <TableHead className="text-white font-bold">Player</TableHead>
+            <TableHead className="text-white font-bold">Company</TableHead>
+            <TableHead className="text-right text-white font-bold">Score</TableHead>
+            {onUpdateScore && <TableHead className="w-[150px] text-center text-white font-bold">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
