@@ -99,28 +99,6 @@ export default function Home() {
           type: "add",
           player: { id: addedPlayer.id!, name: addedPlayer.name, surname: addedPlayer.surname, email: addedPlayer.email, phone: addedPlayer.phone, score: addedPlayer.score, company: addedPlayer.company },
         };
-
-        // Send WhatsApp message on player addition
-        sendWhatsappMessage({
-          to: addedPlayer.phone,
-          message: `Welcome to the Scoreboard Saga, ${addedPlayer.name} ${addedPlayer.surname}! Your score has been added.`
-        }).then(result => {
-          if (result.success) {
-            toast({
-              title: "Welcome Message Sent",
-              description: `A WhatsApp message has been sent to ${addedPlayer.name}.`,
-            });
-          } else {
-            throw new Error(result.error || "An unknown error occurred while sending welcome message.");
-          }
-        }).catch(error => {
-          console.error("Failed to send welcome WhatsApp message:", error);
-            toast({
-                variant: "destructive",
-                title: "Error Sending Welcome Message",
-                description: String(error.message || "Could not send welcome message. Please check logs for details."),
-            });
-        });
       }
     } else if (newPlayers.length === oldPlayers.length) { // Check for score update
       const updatedPlayer = newPlayers.find(np => {
