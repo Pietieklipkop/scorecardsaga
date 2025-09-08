@@ -23,7 +23,7 @@ const getRankIndicator = (rank: number) => {
 
 export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
   return (
-    <div className="space-y-1">
+    <div>
        <div className="flex items-center px-4 h-12 rounded-sm border border-[#718CA9] bg-[#718CA9]/60 text-white font-bold text-sm">
         <div className="w-[80px] flex-shrink-0 text-center">Rank</div>
         <div className="flex-1">Player</div>
@@ -32,7 +32,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
         {onUpdateScore && <div className="w-[150px] flex-shrink-0 text-center">Actions</div>}
       </div>
       
-      <div className="space-y-1">
+      <div className="mt-2.5">
           {players.length > 0 ? (
               players.map((player, index) => {
               const rank = index + 1;
