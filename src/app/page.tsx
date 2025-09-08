@@ -21,10 +21,13 @@ import {
 } from "@/components/ui/dialog";
 import { UpdateScoreForm } from "@/components/update-score-form";
 import { WhatsappModal } from "@/components/whatsapp-modal";
+import { sendWhatsappMessage } from "@/ai/flows/send-whatsapp-flow";
+import { useToast } from "@/hooks/use-toast";
 
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
   const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,6 +99,28 @@ export default function Home() {
           type: "add",
           player: { id: addedPlayer.id!, name: addedPlayer.name, surname: addedPlayer.surname, email: addedPlayer.email, phone: addedPlayer.phone, score: addedPlayer.score, company: addedPlayer.company },
         };
+
+        // Send WhatsApp message on player addition
+        sendWhatsappMessage({
+          to: addedPlayer.phone,
+          message: `Welcome to the Scoreboard Saga, ${addedPlayer.name}! Your score has been added.`
+        }).then(result => {
+          if (result.success) {
+            toast({
+              title: "Welcome Message Sent",
+              description: `A WhatsApp message has been sent to ${addedPlayer.name}.`,
+            });
+          } else {
+            throw new Error(result.error || "An unknown error occurred while sending welcome message.");
+          }
+        }).catch(error => {
+          console.error("Failed to send welcome WhatsApp message:", error);
+            toast({
+                variant: "destructive",
+                title: "Error Sending Welcome Message",
+                description: String(error.message || "Could not send welcome message. Please check logs for details."),
+            });
+        });
       }
     } else if (newPlayers.length === oldPlayers.length) { // Check for score update
       const updatedPlayer = newPlayers.find(np => {
@@ -145,7 +170,7 @@ export default function Home() {
     }
   
     prevPlayersRef.current = newPlayers;
-  }, [players, loading, user]);
+  }, [players, loading, user, toast]);
 
   if (authLoading || !user) {
     return (
