@@ -60,7 +60,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
                       </div>
                       {onUpdateScore && (
                           <div className="w-[150px] flex-shrink-0 text-center">
-                              <Button variant="outline" size="sm" onClick={() => onUpdateScore(player)}>
+                              <Button variant="outline" size="sm" onClick={() => onUpdateScore(player)} className="text-foreground hover:text-accent-foreground">
                                   <TrendingUp className="mr-2 h-4 w-4" />
                                   Update
                               </Button>
