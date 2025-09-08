@@ -39,7 +39,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
         <div className="flex-1 text-right">Score</div>
         {onUpdateScore && <div className="w-[150px] text-center">Actions</div>}
       </div>
-      <div className="rounded-sm border bg-card text-card-foreground">
+      <div className="rounded-sm bg-card text-card-foreground">
         <Table>
             <TableBody>
             {players.length > 0 ? (
@@ -48,7 +48,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
                 return (
                     <TableRow 
                         key={player.id || player.email} 
-                        className="transition-colors bg-card hover:bg-muted/50"
+                        className="transition-colors border border-[#718CA9] bg-[#718CA9]/60 text-white hover:bg-[#718CA9]/80"
                     >
                     <TableCell className="font-medium w-[80px]">
                         <div className="flex items-center justify-center">
@@ -68,9 +68,9 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
                     </TableCell>
                     <TableCell>
                         {player.company ? (
-                        <div className="text-sm text-muted-foreground">{player.company}</div>
+                        <div className="text-sm">{player.company}</div>
                         ) : (
-                        <div className="text-sm text-muted-foreground/50">N/A</div>
+                        <div className="text-sm text-white/50">N/A</div>
                         )}
                     </TableCell>
                     <TableCell className="text-right">
