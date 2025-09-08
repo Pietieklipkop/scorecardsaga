@@ -31,69 +31,74 @@ const getRankIndicator = (rank: number) => {
 
 export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
   return (
-    <div className="rounded-xl border bg-card text-card-foreground shadow-lg relative overflow-hidden">
-       <div className="flex items-center px-4 h-12 rounded-t-lg border border-[#718CA9] bg-[#718CA9]/60 text-white font-bold text-sm">
+    <div className="space-y-1">
+       <div className="flex items-center px-4 h-12 rounded-sm border border-[#718CA9] bg-[#718CA9]/60 text-white font-bold text-sm">
         <div className="w-[80px] text-center">Rank</div>
         <div className="flex-1">Player</div>
         <div className="flex-1">Company</div>
         <div className="flex-1 text-right">Score</div>
         {onUpdateScore && <div className="w-[150px] text-center">Actions</div>}
       </div>
-      <Table>
-        <TableBody>
-          {players.length > 0 ? (
-            players.map((player, index) => {
-              const rank = index + 1;
-              return (
-                <TableRow key={player.id || player.email} className="transition-colors hover:bg-muted/50">
-                  <TableCell className="font-medium w-[80px]">
-                    <div className="flex items-center justify-center">
-                        {getRankIndicator(rank)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                          {player.name.charAt(0)}
-                          {player.surname.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="font-bold">{player.name} {player.surname}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {player.company ? (
-                      <div className="text-sm text-muted-foreground">{player.company}</div>
-                    ) : (
-                      <div className="text-sm text-muted-foreground/50">N/A</div>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant="outline" className="text-lg font-bold border-2 border-primary/50 text-primary bg-primary/10">
-                      {formatScore(player.score)}
-                    </Badge>
-                  </TableCell>
-                  {onUpdateScore && (
-                    <TableCell className="text-center w-[150px]">
-                      <Button variant="outline" size="sm" onClick={() => onUpdateScore(player)}>
-                        <TrendingUp className="mr-2 h-4 w-4" />
-                        Update
-                      </Button>
+      <div className="rounded-sm border bg-card text-card-foreground">
+        <Table>
+            <TableBody>
+            {players.length > 0 ? (
+                players.map((player, index) => {
+                const rank = index + 1;
+                return (
+                    <TableRow 
+                        key={player.id || player.email} 
+                        className="transition-colors bg-card hover:bg-muted/50"
+                    >
+                    <TableCell className="font-medium w-[80px]">
+                        <div className="flex items-center justify-center">
+                            {getRankIndicator(rank)}
+                        </div>
                     </TableCell>
-                  )}
+                    <TableCell>
+                        <div className="flex items-center gap-4">
+                        <Avatar className="h-10 w-10">
+                            <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                            {player.name.charAt(0)}
+                            {player.surname.charAt(0)}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="font-bold">{player.name} {player.surname}</div>
+                        </div>
+                    </TableCell>
+                    <TableCell>
+                        {player.company ? (
+                        <div className="text-sm text-muted-foreground">{player.company}</div>
+                        ) : (
+                        <div className="text-sm text-muted-foreground/50">N/A</div>
+                        )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                        <Badge variant="outline" className="text-lg font-bold border-2 border-primary/50 text-primary bg-primary/10">
+                        {formatScore(player.score)}
+                        </Badge>
+                    </TableCell>
+                    {onUpdateScore && (
+                        <TableCell className="text-center w-[150px]">
+                        <Button variant="outline" size="sm" onClick={() => onUpdateScore(player)}>
+                            <TrendingUp className="mr-2 h-4 w-4" />
+                            Update
+                        </Button>
+                        </TableCell>
+                    )}
+                    </TableRow>
+                );
+                })
+            ) : (
+                <TableRow>
+                <TableCell colSpan={onUpdateScore ? 5 : 4} className="h-48 text-center text-muted-foreground">
+                    The leaderboard is empty. Add a player to get started!
+                </TableCell>
                 </TableRow>
-              );
-            })
-          ) : (
-            <TableRow>
-              <TableCell colSpan={onUpdateScore ? 5 : 4} className="h-48 text-center text-muted-foreground">
-                The leaderboard is empty. Add a player to get started!
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            )}
+            </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
