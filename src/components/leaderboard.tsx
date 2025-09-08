@@ -54,7 +54,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
                           )}
                       </div>
                       <div className="flex-1 text-right">
-                          <Badge variant="outline" className="text-lg font-bold border-2 border-primary/50 text-primary bg-primary/10">
+                          <Badge variant="outline" className="text-lg font-bold border-2 border-primary/50 text-primary bg-primary/10 font-mono tabular-nums">
                               {formatScore(player.score)}
                           </Badge>
                       </div>
