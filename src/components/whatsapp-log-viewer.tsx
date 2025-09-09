@@ -78,7 +78,7 @@ export function WhatsappLogViewer({ logs }: { logs: WhatsappLog[] }) {
                     <div className="mt-4 space-y-4 text-sm">
                         <div>
                             <h3 className="font-semibold mb-1">Status</h3>
-                            <p><StatusBadge status={selectedLog.status} /></p>
+                            <div><StatusBadge status={selectedLog.status} /></div>
                         </div>
                          <div>
                             <h3 className="font-semibold mb-1">Timestamp</h3>
