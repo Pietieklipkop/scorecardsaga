@@ -129,6 +129,15 @@ export default function Home() {
     }
   
     let newLogData: Omit<ActivityLogEntryData, 'timestamp' | 'id'> | null = null;
+    const createPlayerLogObject = (player: Player) => ({
+      id: player.id!,
+      name: player.name,
+      surname: player.surname,
+      email: player.email,
+      phone: player.phone,
+      score: player.score,
+      company: player.company || null,
+    });
   
     // Check for a player addition
     if (newPlayers.length > oldPlayers.length) {
@@ -136,7 +145,7 @@ export default function Home() {
       if (addedPlayer) {
         newLogData = {
           type: "add",
-          player: { id: addedPlayer.id!, name: addedPlayer.name, surname: addedPlayer.surname, email: addedPlayer.email, phone: addedPlayer.phone, score: addedPlayer.score, company: addedPlayer.company },
+          player: createPlayerLogObject(addedPlayer),
         };
         
         // Determine rank and send appropriate WhatsApp message
@@ -178,8 +187,8 @@ export default function Home() {
             if (oldPlayerAtRank && newPlayerAtRank.id === updatedPlayer.id) {
               newLogData = {
                 type: "dethrone",
-                newPlayer: { id: updatedPlayer.id!, name: updatedPlayer.name, surname: updatedPlayer.surname, email: updatedPlayer.email, phone: updatedPlayer.phone, score: updatedPlayer.score, company: updatedPlayer.company },
-                oldPlayer: { id: oldPlayerAtRank.id!, name: oldPlayerAtRank.name, surname: oldPlayerAtRank.surname, email: oldPlayerAtRank.email, phone: oldPlayerAtRank.phone, score: oldPlayerAtRank.score, company: oldPlayerAtRank.company },
+                newPlayer: createPlayerLogObject(updatedPlayer),
+                oldPlayer: createPlayerLogObject(oldPlayerAtRank as Player),
                 rank: i + 1,
               };
               break; 
@@ -190,7 +199,7 @@ export default function Home() {
         if (!newLogData) {
           newLogData = {
             type: 'score_update',
-            player: { id: updatedPlayer.id!, name: updatedPlayer.name, surname: updatedPlayer.surname, email: updatedPlayer.email, phone: updatedPlayer.phone, score: updatedPlayer.score, company: updatedPlayer.company },
+            player: createPlayerLogObject(updatedPlayer),
             scoreChange: scoreDiff,
           };
         }
@@ -200,7 +209,7 @@ export default function Home() {
       if (removedPlayer) {
         newLogData = {
           type: "remove",
-          player: { id: removedPlayer.id!, name: removedPlayer.name, surname: removedPlayer.surname, email: removedPlayer.email, phone: removedPlayer.phone, score: removedPlayer.score, company: removedPlayer.company },
+          player: createPlayerLogObject(removedPlayer),
         };
       }
     }
