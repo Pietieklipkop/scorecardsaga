@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Player, LogEntry, ActivityLogEntryData } from "@/lib/types";
 import { Leaderboard } from "@/components/leaderboard";
@@ -23,6 +23,16 @@ import { UpdateScoreForm } from "@/components/update-score-form";
 import { WhatsappModal } from "@/components/whatsapp-modal";
 import { sendWhatsappMessage } from "@/ai/flows/send-whatsapp-flow";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 export default function Home() {
@@ -40,6 +50,9 @@ export default function Home() {
   const [dethronedPlayer, setDethronedPlayer] = useState<Player | null>(null);
   const [dethroningPlayer, setDethroningPlayer] = useState<Player | null>(null);
 
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
+
   const handleUpdateScoreClick = (player: Player) => {
     setSelectedPlayer(player);
     setIsUpdateDialogOpen(true);
@@ -49,6 +62,32 @@ export default function Home() {
     setIsUpdateDialogOpen(false);
     setSelectedPlayer(null);
   }
+
+  const handleDeleteClick = (player: Player) => {
+    setPlayerToDelete(player);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeletePlayer = async () => {
+    if (!playerToDelete || !playerToDelete.id) return;
+    try {
+      await deleteDoc(doc(db, "players", playerToDelete.id));
+      toast({
+        title: "Player Deleted",
+        description: `${playerToDelete.name} ${playerToDelete.surname} has been removed.`,
+      });
+    } catch (error) {
+      console.error("Error deleting player: ", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not delete player. Please try again.",
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setPlayerToDelete(null);
+    }
+  };
 
   const handleSendWhatsappClick = (dethronedPlayer: Player, newPlayer: Player) => {
     setDethronedPlayer(dethronedPlayer);
@@ -156,6 +195,14 @@ export default function Home() {
           };
         }
       }
+    } else if (newPlayers.length < oldPlayers.length) { // Check for player removal
+      const removedPlayer = oldPlayers.find(p => !newPlayers.some(np => np.id === p.id));
+      if (removedPlayer) {
+        newLogData = {
+          type: "remove",
+          player: { id: removedPlayer.id!, name: removedPlayer.name, surname: removedPlayer.surname, email: removedPlayer.email, phone: removedPlayer.phone, score: removedPlayer.score, company: removedPlayer.company },
+        };
+      }
     }
   
     if (newLogData) {
@@ -196,7 +243,7 @@ export default function Home() {
                 <Skeleton className="h-12 w-full" />
               </div>
             ) : (
-              <Leaderboard players={players} onUpdateScore={handleUpdateScoreClick} />
+              <Leaderboard players={players} onUpdateScore={handleUpdateScoreClick} onDeletePlayer={handleDeleteClick} />
             )}
           </div>
           <div className="lg:w-1/3">
@@ -231,6 +278,24 @@ export default function Home() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the player
+              <span className="font-semibold"> {playerToDelete?.name} {playerToDelete?.surname}</span> and their data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeletePlayer} className="bg-destructive hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

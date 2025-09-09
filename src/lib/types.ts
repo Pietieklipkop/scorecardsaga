@@ -64,7 +64,14 @@ export type ScoreUpdateLogEntry = {
   scoreChange: number;
 };
 
-export type LogEntry = AddLogEntry | DethroneLogEntry | ScoreUpdateLogEntry;
+export type RemoveLogEntry = {
+  id: string;
+  type: "remove";
+  timestamp: Date;
+  player: Player;
+};
+
+export type LogEntry = AddLogEntry | DethroneLogEntry | ScoreUpdateLogEntry | RemoveLogEntry;
 
 
 // Schema for data stored in Firestore `activity_logs` collection
@@ -90,10 +97,16 @@ const scoreUpdateLogDataSchema = z.object({
   scoreChange: z.number(),
 });
 
+const removeLogDataSchema = z.object({
+    type: z.literal("remove"),
+    player: activityLogPlayerSchema,
+});
+
 const activityLogEntrySchema = z.discriminatedUnion("type", [
   addLogDataSchema,
   dethroneLogDataSchema,
   scoreUpdateLogDataSchema,
+  removeLogDataSchema,
 ]).and(z.object({
   id: z.string().optional(), // Now optional as it's the doc ID
   timestamp: z.date(),

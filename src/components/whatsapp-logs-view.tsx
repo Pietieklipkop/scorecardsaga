@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, writeBatch, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { WhatsappLog } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ScrollArea } from "./ui/scroll-area";
@@ -26,15 +27,19 @@ import {
     AlertDialogTitle,
     AlertDialogCancel,
     AlertDialogFooter,
+    AlertDialogTrigger,
+    AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { Separator } from "./ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { Trash2 } from "lucide-react";
 
 export function WhatsappLogsView() {
   const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
   const [logs, setLogs] = useState<WhatsappLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLog, setSelectedLog] = useState<WhatsappLog | null>(null);
-  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -64,8 +69,31 @@ export function WhatsappLogsView() {
 
   const handleRowClick = (log: WhatsappLog) => {
     setSelectedLog(log);
-    setIsErrorDialogOpen(true);
+    setIsDetailDialogOpen(true);
   };
+
+  const handleClearLogs = async () => {
+    try {
+        const logsQuery = query(collection(db, "whatsapp_logs"));
+        const querySnapshot = await getDocs(logsQuery);
+        const batch = writeBatch(db);
+        querySnapshot.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+        toast({
+            title: "Logs Cleared",
+            description: "All WhatsApp logs have been successfully deleted.",
+        })
+    } catch (error) {
+        console.error("Error clearing logs:", error);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not clear logs. Please try again."
+        })
+    }
+  }
 
   if (loading) {
     return (
@@ -80,6 +108,30 @@ export function WhatsappLogsView() {
 
   return (
     <>
+        <div className="flex justify-end mb-4">
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="destructive" disabled={logs.length === 0}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Clear All Logs
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete all {logs.length} log entries.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleClearLogs} className="bg-destructive hover:bg-destructive/90">
+                            Yes, delete all logs
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
         <div className="rounded-xl border bg-card text-card-foreground shadow">
             <Table>
                 <TableHeader>
@@ -121,7 +173,7 @@ export function WhatsappLogsView() {
             </Table>
         </div>
 
-        <AlertDialog open={isErrorDialogOpen} onOpenChange={setIsErrorDialogOpen}>
+        <AlertDialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
             <AlertDialogContent className="max-w-xl">
                 <AlertDialogHeader>
                     <AlertDialogTitle>Log Details</AlertDialogTitle>

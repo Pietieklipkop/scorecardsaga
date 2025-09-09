@@ -4,12 +4,13 @@
 import type { Player } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Medal, TrendingUp } from "lucide-react";
+import { Medal, TrendingUp, Trash2 } from "lucide-react";
 import { formatScore } from "@/lib/utils";
 
 interface LeaderboardProps {
   players: Player[];
   onUpdateScore?: (player: Player) => void;
+  onDeletePlayer?: (player: Player) => void;
 }
 
 const getRankIndicator = (rank: number) => {
@@ -20,7 +21,7 @@ const getRankIndicator = (rank: number) => {
 };
 
 
-export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
+export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: LeaderboardProps) {
   return (
     <div>
        <div className="flex items-center px-4 h-12 rounded-sm border border-[#718CA9] bg-[#718CA9]/60 text-white font-bold mb-2.5 font-recife">
@@ -28,7 +29,7 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
         <div className="flex-1">Player</div>
         <div className="flex-1">Company</div>
         <div className="flex-1 text-right">Score</div>
-        {onUpdateScore && <div className="w-[150px] flex-shrink-0 text-center">Actions</div>}
+        {onUpdateScore && <div className="w-[200px] flex-shrink-0 text-center">Actions</div>}
       </div>
       
       <div>
@@ -59,11 +60,17 @@ export function Leaderboard({ players, onUpdateScore }: LeaderboardProps) {
                           </Badge>
                       </div>
                       {onUpdateScore && (
-                          <div className="w-[150px] flex-shrink-0 text-center">
+                          <div className="w-[200px] flex-shrink-0 text-center flex justify-center gap-2">
                               <Button variant="outline" size="sm" onClick={() => onUpdateScore(player)} className="text-foreground hover:text-accent-foreground">
                                   <TrendingUp className="mr-2 h-4 w-4" />
                                   Update
                               </Button>
+                              {onDeletePlayer && (
+                                <Button variant="destructive" size="sm" onClick={() => onDeletePlayer(player)}>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                </Button>
+                              )}
                           </div>
                       )}
                   </div>

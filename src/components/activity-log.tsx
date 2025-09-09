@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { History, Medal, UserPlus, ArrowDownCircle, CalendarIcon } from "lucide-react";
+import { History, Medal, UserPlus, ArrowDownCircle, CalendarIcon, UserMinus } from "lucide-react";
 import { format, formatDistanceToNow, startOfDay, endOfDay } from "date-fns";
 import { formatScore } from "@/lib/utils";
 
@@ -61,6 +61,8 @@ const getLogIcon = (type: ActivityLogEntryData['type']) => {
             return <Medal className="h-4 w-4 text-primary" />;
         case 'score_update':
             return <ArrowDownCircle className="h-4 w-4 text-primary" />;
+        case 'remove':
+            return <UserMinus className="h-4 w-4 text-destructive" />;
         default:
             return null;
     }
@@ -195,6 +197,16 @@ export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPla
                                             <span className="font-semibold text-green-600">
                                                 {formatScore(log.scoreChange)}
                                             </span>.
+                                        </>
+                                    )}
+                                    {log.type === 'remove' && (
+                                        <>
+                                            <PlayerTooltip player={log.player}>
+                                                <span className="font-semibold text-foreground hover:underline cursor-pointer">
+                                                    {log.player.name} {log.player.surname}
+                                                </span>
+                                            </PlayerTooltip>
+                                            {" "}was removed from the leaderboard.
                                         </>
                                     )}
                                 </div>
