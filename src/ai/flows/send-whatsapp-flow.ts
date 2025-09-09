@@ -12,7 +12,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { Twilio } from 'twilio';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 
 // Ensure environment variables are loaded
 import 'dotenv/config';
@@ -44,13 +44,12 @@ const sendWhatsappFlow = ai.defineFlow(
   async (input) => {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const fromNumber = "+27690087576"; // Hardcoded Twilio number
+    const fromNumber = process.env.TWILIO_SENDER_NUMBER || "+27690087576";
 
-    // IMPORTANT: Replace these placeholder names with your actual HX... template SIDs from Twilio
     const templateSids: { [key: string]: string } = {
-        'competition_entry_failure': 'HX...', // Replace with your failure SID
-        'competition_entry_success': 'HX...', // Replace with your success SID
-        'competition_entry_leaderboard': 'HX...', // Replace with your leaderboard SID
+        'competition_entry_failure': 'HX...', 
+        'competition_entry_success': 'HX...',
+        'competition_entry_leaderboard': 'HX...',
     };
 
     const contentSid = templateSids[input.template];
@@ -60,56 +59,47 @@ const sendWhatsappFlow = ai.defineFlow(
         from: `whatsapp:${fromNumber}`,
         to: `whatsapp:${input.to}`,
     };
-
-    if (!accountSid || !authToken) {
-      const error = "Twilio Account SID or Auth Token are not configured in environment variables.";
-      // Log failure to Firestore
-      try {
-        await addDoc(collection(db, "whatsapp_logs"), {
+    
+    // Log the initial attempt to Firestore immediately
+    let logDocRef;
+    try {
+        const docRef = await addDoc(collection(db, "whatsapp_logs"), {
             to: input.to,
-            message: input.template, // Log template name
-            success: false,
-            error: error,
+            message: input.template,
+            success: false, // Start as false
+            error: "pending",
             timestamp: serverTimestamp(),
             payload: payload,
         });
-      } catch (logError) {
-          console.error("Failed to log whatsapp failure to firestore:", logError)
-      }
+        logDocRef = doc(db, "whatsapp_logs", docRef.id);
+    } catch (logError: any) {
+        console.error("CRITICAL: Failed to create initial Firestore log entry:", logError.message);
+        // If we can't even log, we can't proceed.
+        return { success: false, error: "Failed to create initial log entry in Firestore. Check server permissions and configuration." };
+    }
+
+    // Now, perform the validation and Twilio call
+    if (!accountSid || !authToken) {
+      const error = "Twilio Account SID or Auth Token are not configured in environment variables.";
+      await updateDoc(logDocRef, { error: error, payload: payload });
       return { success: false, error };
     }
     
     if (!contentSid) {
         const error = `Template name "${input.template}" is not mapped to a valid SID. Check the mapping in send-whatsapp-flow.ts.`;
-         // Log failure to Firestore
-        try {
-            await addDoc(collection(db, "whatsapp_logs"), {
-                to: input.to,
-                message: input.template,
-                success: false,
-                error: error,
-                timestamp: serverTimestamp(),
-                payload: payload,
-            });
-        } catch (logError) {
-            console.error("Failed to log whatsapp failure to firestore:", logError);
-        }
+        await updateDoc(logDocRef, { error: error, payload: payload });
         return { success: false, error };
     }
     
     try {
       const client = new Twilio(accountSid, authToken);
-
       const message = await client.messages.create(payload);
 
-      // Log success to Firestore
-      await addDoc(collection(db, "whatsapp_logs"), {
-        to: input.to,
-        message: input.template, // Log template name
+      // Success! Update the log entry.
+      await updateDoc(logDocRef, {
         success: true,
         messageId: message.sid,
-        timestamp: serverTimestamp(),
-        payload: payload,
+        error: null, // Clear pending/error state
       });
 
       return { success: true, messageId: message.sid };
@@ -117,19 +107,10 @@ const sendWhatsappFlow = ai.defineFlow(
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error('Failed to send Twilio message:', errorMessage);
         
-        // Log failure to Firestore
-        try {
-            await addDoc(collection(db, "whatsapp_logs"), {
-                to: input.to,
-                message: input.template, // Log template name
-                success: false,
-                error: errorMessage,
-                timestamp: serverTimestamp(),
-                payload: payload,
-            });
-        } catch (logError) {
-            console.error("Failed to log whatsapp failure to firestore:", logError)
-        }
+        // Failure! Update the log entry with the error.
+        await updateDoc(logDocRef, {
+            error: errorMessage,
+        });
 
         return { success: false, error: errorMessage };
     }
