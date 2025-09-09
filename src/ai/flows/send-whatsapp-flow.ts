@@ -38,14 +38,19 @@ const sendWhatsappFlow = ai.defineFlow(
   async (input) => {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const fromNumber = process.env.TWILIO_SENDER_NUMBER || "+14155238886";
+    const fromNumber = process.env.TWILIO_SENDER_NUMBER || "+14155238886"; // Twilio's WhatsApp Sandbox number
 
-    // IMPORTANT: Replace these placeholder names with your actual HX... SIDs from Twilio
+    // =================================================================================
+    // IMPORTANT: Replace these placeholder SIDs with your actual Content SIDs
+    // from your Twilio Console. You can find these under Messaging > Senders >
+    // WhatsApp Templates. Each template has a unique SID starting with "HX".
+    // =================================================================================
     const templateSids: { [key: string]: string } = {
         'competition_entry_failure': 'HXxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 
         'competition_entry_success': 'HXxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
         'competition_entry_leaderboard': 'HXxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
     };
+    // =================================================================================
 
     if (!accountSid || !authToken) {
       const error = "Twilio Account SID or Auth Token are not configured in environment variables.";
@@ -54,8 +59,8 @@ const sendWhatsappFlow = ai.defineFlow(
     }
 
     const contentSid = templateSids[input.template];
-    if (!contentSid) {
-        const error = `Template name "${input.template}" is not mapped to a valid SID. Check the mapping in send-whatsapp-flow.ts.`;
+    if (!contentSid || contentSid.startsWith('HXxxxx')) {
+        const error = `Template name "${input.template}" is not mapped to a valid SID or is still a placeholder. Check the mapping in send-whatsapp-flow.ts.`;
         console.error(error);
         return { success: false, error };
     }
@@ -69,6 +74,7 @@ const sendWhatsappFlow = ai.defineFlow(
     try {
       const client = new Twilio(accountSid, authToken);
       const message = await client.messages.create(payload);
+      console.log('Twilio message sent successfully:', message.sid);
       return { success: true, messageId: message.sid };
     } catch (error: any) {
         const errorMessage = error instanceof Error ? error.message : String(error);
