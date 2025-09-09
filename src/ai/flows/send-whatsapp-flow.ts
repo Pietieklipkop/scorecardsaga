@@ -40,7 +40,7 @@ const sendWhatsappFlow = ai.defineFlow(
   async (input) => {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const fromNumber = process.env.TWILIO_SENDER_NUMBER || "+27690087576";
+    const fromNumber = process.env.TWILIO_SENDER_NUMBER || "+14155238886";
 
     // IMPORTANT: Replace the placeholder HXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     // with a real Content SID from your Twilio account.
