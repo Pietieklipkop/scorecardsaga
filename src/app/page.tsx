@@ -309,7 +309,7 @@ export default function Home() {
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the player
               <span className="font-semibold"> {playerToDelete?.name} {playerToDelete?.surname}</span> and their data.
-            </DialogDescription>
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
