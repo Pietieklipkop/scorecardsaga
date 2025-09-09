@@ -99,6 +99,24 @@ export default function Home() {
           type: "add",
           player: { id: addedPlayer.id!, name: addedPlayer.name, surname: addedPlayer.surname, email: addedPlayer.email, phone: addedPlayer.phone, score: addedPlayer.score, company: addedPlayer.company },
         };
+        
+        // Determine rank and send appropriate WhatsApp message
+        const rank = newPlayers.findIndex(p => p.id === addedPlayer.id) + 1;
+        const template = rank <= 3 && rank > 0 ? "competition_entry_success" : "competition_entry_failure";
+
+        sendWhatsappMessage({ to: addedPlayer.phone, template })
+          .then(result => {
+            if (!result.success) {
+              console.error("Failed to send welcome WhatsApp message:", result.error);
+              toast({
+                variant: "destructive",
+                title: "WhatsApp Error",
+                description: "Could not send welcome message. See logs for details.",
+              });
+            }
+          }).catch(error => {
+            console.error("Failed to execute sendWhatsappMessage flow:", error);
+          });
       }
     } else if (newPlayers.length === oldPlayers.length) { // Check for score update
       const updatedPlayer = newPlayers.find(np => {
@@ -203,9 +221,9 @@ export default function Home() {
       <Dialog open={isWhatsappDialogOpen} onOpenChange={setIsWhatsappDialogOpen}>
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
-            <DialogTitle>Send WhatsApp Notification</DialogTitle>
+            <DialogTitle>Send Dethrone Notification</DialogTitle>
              <DialogDescription>
-              A message will be prepared to inform the dethroned player.
+              A pre-approved template message will be sent to the dethroned player.
             </DialogDescription>
           </DialogHeader>
           {dethronedPlayer && dethroningPlayer && (

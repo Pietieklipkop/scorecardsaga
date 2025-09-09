@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Info } from "lucide-react";
-import { formatScore } from "@/lib/utils";
 
 interface WhatsappModalProps {
     dethronedPlayer: Player;
@@ -19,14 +18,14 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer }: WhatsappMod
     const { toast } = useToast();
     const [isSending, setIsSending] = useState(false);
 
-    const message = `Hi ${dethronedPlayer.name}! Uh oh, looks like ${dethroningPlayer.name} just snatched your spot on the leaderboard with a score of ${formatScore(dethroningPlayer.score)}! Don't worry, you can still reclaim your glory. Head back to the game and improve your score!`;
+    const templateName = "competition_entry_leaderboard";
 
     const handleSend = async () => {
         setIsSending(true);
         try {
             const result = await sendWhatsappMessage({
                 to: dethronedPlayer.phone,
-                message,
+                template: templateName,
             });
 
             if (result.success) {
@@ -52,22 +51,25 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer }: WhatsappMod
     return (
         <div className="space-y-4">
             <div className="rounded-md border bg-muted/50 p-4">
-                <p className="text-sm text-muted-foreground">
-                    {message}
+                <p className="text-sm font-semibold text-foreground">
+                    Template: <span className="font-mono bg-muted px-1 py-0.5 rounded">{templateName}</span>
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                    This pre-approved template will be sent to {dethronedPlayer.name} to notify them they've been knocked off the leaderboard.
                 </p>
             </div>
              <Alert variant="destructive">
                 <Info className="h-4 w-4" />
-                <AlertTitle>Important: Sandbox Mode</AlertTitle>
+                <AlertTitle>Important: 24-Hour Window</AlertTitle>
                 <AlertDescription>
-                    This will only work if <span className="font-bold">{dethronedPlayer.name} ({dethronedPlayer.phone})</span> has joined your Twilio Sandbox.
+                    This will only work if <span className="font-bold">{dethronedPlayer.name} ({dethronedPlayer.phone})</span> has messaged your business number within the last 24 hours.
                 </AlertDescription>
             </Alert>
             <p className="text-sm text-muted-foreground">
-                Clicking the button will attempt to send the above message via WhatsApp.
+                Clicking the button will attempt to send the template message via WhatsApp.
             </p>
             <Button onClick={handleSend} className="w-full" disabled={isSending}>
-                {isSending ? "Sending..." : "Send WhatsApp Notification"}
+                {isSending ? "Sending..." : "Send Dethrone Notification"}
             </Button>
         </div>
     );

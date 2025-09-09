@@ -20,7 +20,7 @@ import 'dotenv/config';
 
 const SendWhatsappInputSchema = z.object({
   to: z.string().describe('The recipient phone number in E.164 format.'),
-  message: z.string().describe('The content of the message to send.'),
+  template: z.string().describe('The pre-approved Twilio template name to send.'),
 });
 export type SendWhatsappInput = z.infer<typeof SendWhatsappInputSchema>;
 
@@ -44,7 +44,7 @@ const sendWhatsappFlow = ai.defineFlow(
   async (input) => {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const fromNumber = "+15558511306"; // Hardcoded Twilio number
+    const fromNumber = "+27690087576"; // Hardcoded Twilio number
 
     if (!accountSid || !authToken) {
       const error = "Twilio Account SID or Auth Token are not configured in environment variables.";
@@ -52,7 +52,7 @@ const sendWhatsappFlow = ai.defineFlow(
       try {
         await addDoc(collection(db, "whatsapp_logs"), {
             to: input.to,
-            message: input.message,
+            message: `Template: ${input.template}`,
             success: false,
             error: error,
             timestamp: serverTimestamp(),
@@ -66,15 +66,15 @@ const sendWhatsappFlow = ai.defineFlow(
     try {
       const client = new Twilio(accountSid, authToken);
       const message = await client.messages.create({
+        contentSid: input.template,
         from: `whatsapp:${fromNumber}`, // Your Twilio number as the sender
         to: `whatsapp:${input.to}`,   // The player's number as the recipient
-        body: input.message,
       });
 
       // Log success to Firestore
       await addDoc(collection(db, "whatsapp_logs"), {
         to: input.to,
-        message: input.message,
+        message: `Template: ${input.template}`,
         success: true,
         messageId: message.sid,
         timestamp: serverTimestamp(),
@@ -89,7 +89,7 @@ const sendWhatsappFlow = ai.defineFlow(
         try {
             await addDoc(collection(db, "whatsapp_logs"), {
                 to: input.to,
-                message: input.message,
+                message: `Template: ${input.template}`,
                 success: false,
                 error: errorMessage,
                 timestamp: serverTimestamp(),
