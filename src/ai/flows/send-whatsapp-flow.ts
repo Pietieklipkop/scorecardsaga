@@ -78,7 +78,9 @@ const sendWhatsappFlow = ai.defineFlow(
     };
 
     if (input.contentVariables) {
-        payload.contentVariables = JSON.stringify(input.contentVariables);
+        // The Twilio helper library expects an object, not a stringified JSON.
+        // It handles the serialization internally.
+        payload.contentVariables = input.contentVariables as any;
     }
     
     try {

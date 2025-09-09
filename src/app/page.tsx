@@ -136,7 +136,7 @@ export default function Home() {
       email: player.email,
       phone: player.phone,
       score: player.score,
-      company: player.company || null, // Ensure company is null, not undefined
+      company: player.company || null,
     });
   
     // Check for a player addition
@@ -309,7 +309,7 @@ export default function Home() {
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the player
               <span className="font-semibold"> {playerToDelete?.name} {playerToDelete?.surname}</span> and their data.
-            </AlertDialogDescription>
+            </DialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
