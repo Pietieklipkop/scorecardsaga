@@ -1,23 +1,11 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /players/{playerId} {
-      // Public can read for the scoreboard page, only authenticated can write.
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-
-    match /activity_logs/{logId} {
-       // Public can read for the activity feed, only authenticated can write.
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-
-    match /whatsapp_logs/{logId} {
-      // Only authenticated users can read/write their own logs.
-      allow read, write: if request.auth != null;
+    // Allow public read and write access to all collections.
+    // This is for debugging and not recommended for production.
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
