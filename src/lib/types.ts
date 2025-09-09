@@ -115,7 +115,7 @@ const activityLogEntrySchema = z.discriminatedUnion("type", [
 export type ActivityLogEntryData = z.infer<typeof activityLogEntrySchema>;
 
 
-// Schema for logs managed in client-side state
+// Schema for logs fetched from Firestore
 export const whatsappLogSchema = z.object({
     id: z.string(),
     status: z.enum(['success', 'failure', 'pending']),

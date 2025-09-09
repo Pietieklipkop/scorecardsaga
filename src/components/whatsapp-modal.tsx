@@ -1,51 +1,41 @@
 
 "use client";
 
-import type { Player, WhatsappLog } from "@/lib/types";
+import type { Player } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { sendWhatsappMessage } from "@/ai/flows/send-whatsapp-flow";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Info } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface WhatsappModalProps {
     dethronedPlayer: Player;
     dethroningPlayer: Player;
-    onMessageSent: (log: WhatsappLog) => void;
+    onMessageSent: (result: { success: boolean, error?: string }) => void;
 }
 
 export function WhatsappModal({ dethronedPlayer, dethroningPlayer, onMessageSent }: WhatsappModalProps) {
     const [isSending, setIsSending] = useState(false);
+    const { toast } = useToast();
 
     const templateName = "competition_entry_leaderboard";
 
     const handleSend = async () => {
         setIsSending(true);
-        let result;
         try {
-            result = await sendWhatsappMessage({
+            const result = await sendWhatsappMessage({
                 to: dethronedPlayer.phone,
                 template: templateName,
             });
+            onMessageSent(result);
         } catch (error: any) {
-             result = {
+             const result = {
                 success: false,
-                to: dethronedPlayer.phone,
-                template: templateName,
-                payload: {},
                 error: error.message || "A critical error occurred while executing the flow.",
             };
+            onMessageSent(result);
         } finally {
-            const log: WhatsappLog = {
-                id: new Date().toISOString(),
-                status: result.success ? 'success' : 'failure',
-                to: result.to,
-                template: result.template,
-                payload: result.payload,
-                error: result.error,
-                timestamp: new Date(),
-            };
-            onMessageSent(log);
             setIsSending(false);
         }
     };

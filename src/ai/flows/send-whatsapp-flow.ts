@@ -1,9 +1,9 @@
 
 'use server';
 /**
- * @fileOverview A flow for sending WhatsApp messages via Twilio.
+ * @fileOverview A flow for sending WhatsApp messages via Twilio and logging the attempt.
  *
- * - sendWhatsappMessage - A function that handles sending the message.
+ * - sendWhatsappMessage - A function that handles sending the message and logging.
  * - SendWhatsappInput - The input type for the sendWhatsappMessage function.
  * - SendWhatsappOutput - The return type for the sendWhatsappMessage function.
  */
@@ -11,6 +11,8 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { Twilio } from 'twilio';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const SendWhatsappInputSchema = z.object({
   to: z.string().describe('The recipient phone number in E.164 format.'),
@@ -20,9 +22,7 @@ export type SendWhatsappInput = z.infer<typeof SendWhatsappInputSchema>;
 
 const SendWhatsappOutputSchema = z.object({
   success: z.boolean(),
-  to: z.string(),
-  template: z.string(),
-  payload: z.any().optional(),
+  logId: z.string().optional(),
   error: z.string().optional(),
 });
 export type SendWhatsappOutput = z.infer<typeof SendWhatsappOutputSchema>;
@@ -42,8 +42,6 @@ const sendWhatsappFlow = ai.defineFlow(
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     const fromNumber = process.env.TWILIO_SENDER_NUMBER || "+15558511306";
 
-    // IMPORTANT: Replace the placeholder HXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    // with a real Content SID from your Twilio account.
     const templateSids: { [key: string]: string } = {
         'competition_entry_failure': 'HX0ec6a7dd8adf7f5b3de2058944dc4fff', 
         'competition_entry_success': 'HX95d4ea576c704914bc271e6146533d7c',
@@ -58,28 +56,46 @@ const sendWhatsappFlow = ai.defineFlow(
         to: `whatsapp:${input.to}`,
     };
 
+    let logData: any = {
+      ...input,
+      payload,
+      status: 'pending',
+      timestamp: serverTimestamp(),
+      error: null,
+    };
+
     if (!accountSid || !authToken) {
-      const error = "Twilio Account SID or Auth Token are not configured in environment variables.";
-      console.error(error);
-      return { success: false, ...input, payload, error };
+      logData.status = 'failure';
+      logData.error = "Twilio Account SID or Auth Token are not configured in environment variables.";
+      console.error(logData.error);
+      const logRef = await addDoc(collection(db, "whatsapp_logs"), logData);
+      return { success: false, logId: logRef.id, error: logData.error };
     }
 
     if (!contentSid || contentSid.startsWith('HXxxxx')) {
-        const error = `Template name "${input.template}" is not mapped to a valid SID or is still a placeholder. Check the mapping in send-whatsapp-flow.ts.`;
-        console.error(error);
-        return { success: false, ...input, payload, error };
+      logData.status = 'failure';
+      logData.error = `Template name "${input.template}" is not mapped to a valid SID or is still a placeholder.`;
+      console.error(logData.error);
+      const logRef = await addDoc(collection(db, "whatsapp_logs"), logData);
+      return { success: false, logId: logRef.id, error: logData.error };
     }
     
     try {
       const client = new Twilio(accountSid, authToken);
       await client.messages.create(payload);
       
-      return { success: true, ...input, payload };
+      logData.status = 'success';
+      const logRef = await addDoc(collection(db, "whatsapp_logs"), logData);
+      return { success: true, logId: logRef.id };
 
     } catch (error: any) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error('Failed to send Twilio message:', errorMessage, 'Payload:', payload);
-        return { success: false, ...input, payload, error: errorMessage };
+        
+        logData.status = 'failure';
+        logData.error = errorMessage;
+        const logRef = await addDoc(collection(db, "whatsapp_logs"), logData);
+        return { success: false, logId: logRef.id, error: errorMessage };
     }
   }
 );
