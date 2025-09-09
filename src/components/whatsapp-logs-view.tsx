@@ -30,6 +30,13 @@ import {
     AlertDialogTrigger,
     AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
+} from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
 
@@ -133,13 +140,14 @@ export function WhatsappLogsView() {
             </AlertDialog>
         </div>
         <div className="rounded-xl border bg-card text-card-foreground shadow">
+          <ScrollArea className="h-[60vh]">
             <Table>
                 <TableHeader>
                 <TableRow>
                     <TableHead>Status</TableHead>
                     <TableHead>Recipient</TableHead>
                     <TableHead>Timestamp</TableHead>
-                    <TableHead>Details</TableHead>
+                    <TableHead>Template</TableHead>
                 </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -171,45 +179,45 @@ export function WhatsappLogsView() {
                 )}
                 </TableBody>
             </Table>
+          </ScrollArea>
         </div>
 
-        <AlertDialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-            <AlertDialogContent className="max-w-xl">
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Log Details</AlertDialogTitle>
-                    <AlertDialogDescription>
+        <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Log Details</DialogTitle>
+                    <DialogDescription>
                         The full details of the WhatsApp message attempt are shown below.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
+                    </DialogDescription>
+                </DialogHeader>
                 {selectedLog && (
-                    <div className="mt-4 text-sm space-y-4">
-                        {selectedLog.error && (
-                            <div>
-                                <h3 className="font-semibold text-destructive mb-2">Error Message</h3>
-                                <div className="max-h-40 w-full overflow-y-auto rounded-md border bg-muted/50 p-3">
-                                    <pre className="text-destructive whitespace-pre-wrap break-words font-mono">
-                                        <code>{selectedLog.error}</code>
-                                    </pre>
-                                </div>
-                            </div>
-                        )}
-                        {selectedLog.payload && (
-                             <div>
-                                <h3 className="font-semibold text-foreground mb-2">Twilio Payload</h3>
-                                <div className="max-h-60 w-full overflow-y-auto rounded-md border bg-muted/50 p-3">
-                                    <pre className="text-foreground whitespace-pre-wrap break-words font-mono">
-                                        <code>{JSON.stringify(selectedLog.payload, null, 2)}</code>
-                                    </pre>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    <ScrollArea className="max-h-[60vh] mt-4 pr-6">
+                      <div className="text-sm space-y-4">
+                          {selectedLog.error && (
+                              <div>
+                                  <h3 className="font-semibold text-destructive mb-2">Error Message</h3>
+                                  <div className="w-full rounded-md border bg-muted/50 p-3">
+                                      <pre className="text-destructive whitespace-pre-wrap break-words font-mono text-xs">
+                                          <code>{selectedLog.error}</code>
+                                      </pre>
+                                  </div>
+                              </div>
+                          )}
+                          {selectedLog.payload && (
+                              <div>
+                                  <h3 className="font-semibold text-foreground mb-2">Twilio Payload</h3>
+                                  <div className="w-full rounded-md border bg-muted/50 p-3">
+                                      <pre className="text-foreground whitespace-pre-wrap break-words font-mono text-xs">
+                                          <code>{JSON.stringify(selectedLog.payload, null, 2)}</code>
+                                      </pre>
+                                  </div>
+                              </div>
+                          )}
+                      </div>
+                    </ScrollArea>
                 )}
-                <AlertDialogFooter className="mt-4">
-                    <AlertDialogCancel>Close</AlertDialogCancel>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+            </DialogContent>
+        </Dialog>
     </>
   );
 }

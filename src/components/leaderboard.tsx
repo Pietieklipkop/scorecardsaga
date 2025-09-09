@@ -66,9 +66,9 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
                                   Update
                               </Button>
                               {onDeletePlayer && (
-                                <Button variant="destructive" size="sm" onClick={() => onDeletePlayer(player)}>
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
+                                <Button variant="destructive" size="icon" onClick={() => onDeletePlayer(player)}>
+                                    <Trash2 className="h-4 w-4" />
+                                    <span className="sr-only">Delete</span>
                                 </Button>
                               )}
                           </div>
