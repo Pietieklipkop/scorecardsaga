@@ -113,3 +113,18 @@ const activityLogEntrySchema = z.discriminatedUnion("type", [
 }));
 
 export type ActivityLogEntryData = z.infer<typeof activityLogEntrySchema>;
+
+
+// Schema for data stored in Firestore `whatsapp_logs` collection
+export const whatsappLogSchema = z.object({
+    id: z.string().optional(),
+    status: z.enum(['success', 'failure', 'pending']),
+    to: z.string(),
+    template: z.string(),
+    payload: z.any().optional(),
+    error: z.string().optional().nullable(),
+    messageId: z.string().optional().nullable(),
+    timestamp: z.any(), // Can be Date or Firestore Timestamp
+});
+
+export type WhatsappLog = z.infer<typeof whatsappLogSchema>;

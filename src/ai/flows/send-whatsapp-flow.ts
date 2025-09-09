@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview A flow for sending WhatsApp messages via Twilio.
+ * @fileOverview A flow for sending WhatsApp messages via Twilio and logging the attempt.
  *
  * - sendWhatsappMessage - A function that handles sending the message.
  * - SendWhatsappInput - The input type for the sendWhatsappMessage function.
@@ -11,6 +11,8 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { Twilio } from 'twilio';
+import { collection, addDoc, updateDoc, serverTimestamp, doc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const SendWhatsappInputSchema = z.object({
   to: z.string().describe('The recipient phone number in E.164 format.'),
@@ -38,7 +40,7 @@ const sendWhatsappFlow = ai.defineFlow(
   async (input) => {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const fromNumber = process.env.TWILIO_SENDER_NUMBER || "+14155238886"; // Twilio's WhatsApp Sandbox number
+    const fromNumber = process.env.TWILIO_SENDER_NUMBER || "+14155238886";
 
     // =================================================================================
     // IMPORTANT: Replace these placeholder SIDs with your actual Content SIDs
@@ -52,37 +54,65 @@ const sendWhatsappFlow = ai.defineFlow(
     };
     // =================================================================================
 
-    if (!accountSid || !authToken) {
-      const error = "Twilio Account SID or Auth Token are not configured in environment variables.";
-      console.error(error);
-      return { success: false, error };
-    }
-
     const contentSid = templateSids[input.template];
-    if (!contentSid || contentSid.startsWith('HXxxxx')) {
-        const error = `Template name "${input.template}" is not mapped to a valid SID or is still a placeholder. Check the mapping in send-whatsapp-flow.ts.`;
-        console.error(error);
-        return { success: false, error };
-    }
     
-    const payload: {
-        contentSid: string;
-        from: string;
-        to: string;
-    } = {
+    const payload = {
         contentSid: contentSid,
         from: `whatsapp:${fromNumber}`,
         to: `whatsapp:${input.to}`,
     };
+
+    // Create initial log entry
+    const logData = {
+      to: input.to,
+      template: input.template,
+      status: 'pending' as const,
+      payload: payload,
+      timestamp: serverTimestamp(),
+    };
+
+    let logRef;
+    try {
+        logRef = await addDoc(collection(db, 'whatsapp_logs'), logData);
+    } catch (e: any) {
+        const error = "Failed to create initial log entry in Firestore. Check server permissions and configuration.";
+        console.error(error, e);
+        return { success: false, error };
+    }
+
+    // Pre-flight checks
+    if (!accountSid || !authToken) {
+      const error = "Twilio Account SID or Auth Token are not configured in environment variables.";
+      await updateDoc(logRef, { status: 'failure', error: error });
+      return { success: false, error };
+    }
+
+    if (!contentSid || contentSid.startsWith('HXxxxx')) {
+        const error = `Template name "${input.template}" is not mapped to a valid SID or is still a placeholder. Check the mapping in send-whatsapp-flow.ts.`;
+        await updateDoc(logRef, { status: 'failure', error: error });
+        return { success: false, error };
+    }
     
     try {
       const client = new Twilio(accountSid, authToken);
       const message = await client.messages.create(payload);
-      console.log('Twilio message sent successfully:', message.sid);
+      
+      await updateDoc(logRef, {
+        status: 'success',
+        messageId: message.sid,
+      });
+
       return { success: true, messageId: message.sid };
+
     } catch (error: any) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error('Failed to send Twilio message:', errorMessage, 'Payload:', payload);
+
+        await updateDoc(logRef, {
+            status: 'failure',
+            error: errorMessage,
+        });
+
         return { success: false, error: errorMessage };
     }
   }

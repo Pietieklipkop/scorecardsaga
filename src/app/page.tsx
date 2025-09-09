@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { ActivityLog } from "@/components/activity-log";
+import { WhatsappLogViewer } from "@/components/whatsapp-log-viewer";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import {
@@ -268,8 +269,9 @@ export default function Home() {
               <Leaderboard players={players} onUpdateScore={handleUpdateScoreClick} onDeletePlayer={handleDeleteClick} />
             )}
           </div>
-          <div className="lg:w-1/3">
+          <div className="lg:w-1/3 space-y-8">
             <ActivityLog onSendWhatsapp={handleSendWhatsappClick} />
+            <WhatsappLogViewer />
           </div>
         </div>
       </main>
