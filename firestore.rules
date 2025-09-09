@@ -1,23 +1,27 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Allow public read for the projector view, but only authenticated users can write/delete.
+    
+    // Players can be managed by any authenticated user
     match /players/{playerId} {
-      allow read: if true;
-      allow write, delete: if request.auth != null;
-    }
-
-    // Only authenticated users can read or write activity logs.
-    match /activity_logs/{logId} {
       allow read, write: if request.auth != null;
     }
 
-    // Only authenticated users can read or write/delete whatsapp logs.
+    // Activity logs can be created and read by authenticated users
+    match /activity_logs/{logId} {
+      allow read, create: if request.auth != null;
+    }
+    
+    // WhatsApp logs can be managed by authenticated users.
+    // Allow 'list' for the query that powers the "clear logs" button.
     match /whatsapp_logs/{logId} {
-      allow read, write, delete: if request.auth != null;
+      allow list, read, create, delete: if request.auth != null;
+    }
+
+    // Public scoreboard can be read by anyone
+    match /players/{playerId} {
+        allow read: if true;
     }
   }
 }
