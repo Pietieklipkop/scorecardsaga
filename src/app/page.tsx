@@ -136,7 +136,7 @@ export default function Home() {
       email: player.email,
       phone: player.phone,
       score: player.score,
-      company: player.company || null,
+      company: player.company || null, // Ensure company is null, not undefined
     });
   
     // Check for a player addition
