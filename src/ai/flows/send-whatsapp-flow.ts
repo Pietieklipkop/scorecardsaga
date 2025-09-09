@@ -14,9 +14,6 @@ import { Twilio } from 'twilio';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 
-// Ensure environment variables are loaded
-import 'dotenv/config';
-
 
 const SendWhatsappInputSchema = z.object({
   to: z.string().describe('The recipient phone number in E.164 format.'),

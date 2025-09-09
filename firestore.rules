@@ -1,23 +1,28 @@
-
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Allow public read for scoreboard, but only authenticated users can modify
+
+    // Allow authenticated users to perform all actions on players,
+    // assuming all write operations are handled by trusted server-side code (flows).
     match /players/{playerId} {
-      allow read;
-      allow write: if request.auth != null;
+      allow read, write: if request.auth != null;
     }
 
-    // Only authenticated users can read/write activity logs
+    // Allow authenticated users to perform all actions on activity logs,
+    // assuming all write operations are handled by trusted server-side code (flows).
     match /activity_logs/{logId} {
       allow read, write: if request.auth != null;
     }
-    
-    // Only authenticated users can read/write/delete whatsapp logs
+
+    // Allow authenticated users to perform all actions on WhatsApp logs.
+    // This allows flows to create logs and the client to list/delete them.
     match /whatsapp_logs/{logId} {
-      allow read, write, delete: if request.auth != null;
+       allow read, write, list, delete: if request.auth != null;
+    }
+
+    // Fallback rule to deny all other access
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
