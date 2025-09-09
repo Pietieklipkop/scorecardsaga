@@ -65,11 +65,16 @@ const sendWhatsappFlow = ai.defineFlow(
     
     try {
       const client = new Twilio(accountSid, authToken);
-      const message = await client.messages.create({
+
+      const payload = {
         contentSid: input.template,
-        from: `whatsapp:${fromNumber}`, // Your Twilio number as the sender
-        to: `whatsapp:${input.to}`,   // The player's number as the recipient
-      });
+        from: `whatsapp:${fromNumber}`,
+        to: `whatsapp:${input.to}`,
+      };
+
+      console.log("Sending payload to Twilio:", JSON.stringify(payload, null, 2));
+
+      const message = await client.messages.create(payload);
 
       // Log success to Firestore
       await addDoc(collection(db, "whatsapp_logs"), {
