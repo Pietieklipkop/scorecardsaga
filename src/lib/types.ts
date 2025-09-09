@@ -115,7 +115,7 @@ const activityLogEntrySchema = z.discriminatedUnion("type", [
 export type ActivityLogEntryData = z.infer<typeof activityLogEntrySchema>;
 
 const twilioPayloadSchema = z.object({
-    contentSid: z.string(),
+    contentSid: z.string().optional(),
     from: z.string(),
     to: z.string(),
   });

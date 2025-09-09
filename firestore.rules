@@ -1,21 +1,42 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Players can be read by anyone, but only created, updated, or deleted by authenticated users.
+
+    // Helper function to check if a user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Rules for the 'players' collection
     match /players/{playerId} {
+      // Anyone can read the leaderboard
       allow read;
-      allow write: if request.auth != null;
+      // Only authenticated users can create, update, or delete players
+      allow create, update, delete: if isAuthenticated();
     }
 
-    // Activity logs can be read and created by authenticated users.
+    // Rules for the 'activity_logs' collection
     match /activity_logs/{logId} {
-      allow read, create: if request.auth != null;
+      // Only authenticated users can read or create activity logs
+      allow read, create: if isAuthenticated();
+      // No one can update or delete activity logs to maintain integrity
+      allow update, delete: if false;
     }
 
-    // WhatsApp logs can be read, listed, created, and deleted by authenticated users.
+    // Rules for the 'whatsapp_logs' collection
     match /whatsapp_logs/{logId} {
-      allow read, list, create, delete: if request.auth != null;
+        // Authenticated users (i.e., your server) can create new logs
+        allow create: if isAuthenticated();
+        // Authenticated users can read the logs for the viewer
+        allow read: if isAuthenticated();
+        // Authenticated users can delete logs (for the 'clear all' button)
+        allow delete: if isAuthenticated();
+        // Authenticated users can update a log (to add success/error status)
+        allow update: if isAuthenticated();
+        // Allow listing the collection for the "Clear All Logs" feature
+        allow list: if isAuthenticated();
     }
   }
 }
