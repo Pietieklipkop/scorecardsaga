@@ -42,6 +42,8 @@ const sendWhatsappFlow = ai.defineFlow(
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     const fromNumber = process.env.TWILIO_SENDER_NUMBER || "+14155238886";
 
+    // IMPORTANT: Replace the placeholder HXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // with a real Content SID from your Twilio account.
     const templateSids: { [key: string]: string } = {
         'competition_entry_failure': 'HXe4b7f4b1f627b499ebe1c88895bd4c23', 
         'competition_entry_success': 'HX95d4ea576c704914bc271e6146533d7c',
@@ -50,25 +52,30 @@ const sendWhatsappFlow = ai.defineFlow(
     
     const contentSid = templateSids[input.template];
     
+    // The Twilio API expects capitalized keys.
     const payload = {
-        contentSid: contentSid,
-        from: `whatsapp:${fromNumber}`,
-        to: `whatsapp:${input.to}`,
+        ContentSid: contentSid,
+        From: `whatsapp:${fromNumber}`,
+        To: `whatsapp:${input.to}`,
     };
 
     if (!accountSid || !authToken) {
       const error = "Twilio Account SID or Auth Token are not configured in environment variables.";
+      console.error(error);
       return { success: false, ...input, payload, error };
     }
 
+    // Check if the template name is valid and mapped to a real SID.
     if (!contentSid || contentSid.startsWith('HXxxxx')) {
         const error = `Template name "${input.template}" is not mapped to a valid SID or is still a placeholder. Check the mapping in send-whatsapp-flow.ts.`;
+        console.error(error);
         return { success: false, ...input, payload, error };
     }
     
     try {
       const client = new Twilio(accountSid, authToken);
-      await client.messages.create(payload);
+      // The twilio-node library will correctly serialize the payload with capitalized keys.
+      await client.messages.create(payload as any);
       
       return { success: true, ...input, payload };
 
