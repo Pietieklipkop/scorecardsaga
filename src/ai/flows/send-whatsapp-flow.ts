@@ -52,11 +52,11 @@ const sendWhatsappFlow = ai.defineFlow(
     
     const contentSid = templateSids[input.template];
     
-    // The Twilio API expects capitalized keys.
+    // The twilio-node library expects camelCase keys.
     const payload = {
-        ContentSid: contentSid,
-        From: `whatsapp:${fromNumber}`,
-        To: `whatsapp:${input.to}`,
+        contentSid: contentSid,
+        from: `whatsapp:${fromNumber}`,
+        to: `whatsapp:${input.to}`,
     };
 
     if (!accountSid || !authToken) {
@@ -74,8 +74,8 @@ const sendWhatsappFlow = ai.defineFlow(
     
     try {
       const client = new Twilio(accountSid, authToken);
-      // The twilio-node library will correctly serialize the payload with capitalized keys.
-      await client.messages.create(payload as any);
+      // The twilio-node library will correctly serialize the payload.
+      await client.messages.create(payload);
       
       return { success: true, ...input, payload };
 
