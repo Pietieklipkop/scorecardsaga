@@ -40,7 +40,7 @@ const sendWhatsappFlow = ai.defineFlow(
   async (input) => {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const fromNumber = process.env.TWILIO_SENDER_NUMBER || "+14155238886";
+    const fromNumber = process.env.TWILIO_SENDER_NUMBER || "+27690087576";
 
     // IMPORTANT: Replace the placeholder HXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     // with a real Content SID from your Twilio account.
@@ -52,7 +52,6 @@ const sendWhatsappFlow = ai.defineFlow(
     
     const contentSid = templateSids[input.template];
     
-    // The twilio-node library expects camelCase keys.
     const payload = {
         contentSid: contentSid,
         from: `whatsapp:${fromNumber}`,
@@ -65,7 +64,6 @@ const sendWhatsappFlow = ai.defineFlow(
       return { success: false, ...input, payload, error };
     }
 
-    // Check if the template name is valid and mapped to a real SID.
     if (!contentSid || contentSid.startsWith('HXxxxx')) {
         const error = `Template name "${input.template}" is not mapped to a valid SID or is still a placeholder. Check the mapping in send-whatsapp-flow.ts.`;
         console.error(error);
@@ -74,7 +72,6 @@ const sendWhatsappFlow = ai.defineFlow(
     
     try {
       const client = new Twilio(accountSid, authToken);
-      // The twilio-node library will correctly serialize the payload.
       await client.messages.create(payload);
       
       return { success: true, ...input, payload };
