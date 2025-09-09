@@ -1,10 +1,9 @@
 
 "use client";
 
-import type { Player } from "@/lib/types";
+import type { Player, WhatsappLog } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { sendWhatsappMessage } from "@/ai/flows/send-whatsapp-flow";
-import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Info } from "lucide-react";
@@ -12,38 +11,41 @@ import { Info } from "lucide-react";
 interface WhatsappModalProps {
     dethronedPlayer: Player;
     dethroningPlayer: Player;
+    onMessageSent: (log: WhatsappLog) => void;
 }
 
-export function WhatsappModal({ dethronedPlayer, dethroningPlayer }: WhatsappModalProps) {
-    const { toast } = useToast();
+export function WhatsappModal({ dethronedPlayer, dethroningPlayer, onMessageSent }: WhatsappModalProps) {
     const [isSending, setIsSending] = useState(false);
 
     const templateName = "competition_entry_leaderboard";
 
     const handleSend = async () => {
         setIsSending(true);
+        let result;
         try {
-            const result = await sendWhatsappMessage({
+            result = await sendWhatsappMessage({
                 to: dethronedPlayer.phone,
                 template: templateName,
             });
-
-            if (result.success) {
-                toast({
-                    title: "Message Sent!",
-                    description: `A WhatsApp message has been sent to ${dethronedPlayer.name}.`,
-                });
-            } else {
-                throw new Error(result.error || "An unknown error occurred.");
-            }
         } catch (error: any) {
-            console.error("Failed to send WhatsApp message:", error);
-            toast({
-                variant: "destructive",
-                title: "Error Sending Message",
-                description: String(error.message || "Could not send WhatsApp message. Please check logs for details."),
-            });
+             result = {
+                success: false,
+                to: dethronedPlayer.phone,
+                template: templateName,
+                payload: {},
+                error: error.message || "A critical error occurred while executing the flow.",
+            };
         } finally {
+            const log: WhatsappLog = {
+                id: new Date().toISOString(),
+                status: result.success ? 'success' : 'failure',
+                to: result.to,
+                template: result.template,
+                payload: result.payload,
+                error: result.error,
+                timestamp: new Date(),
+            };
+            onMessageSent(log);
             setIsSending(false);
         }
     };

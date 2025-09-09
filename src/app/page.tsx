@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { Player, LogEntry, ActivityLogEntryData } from "@/lib/types";
+import type { Player, LogEntry, ActivityLogEntryData, WhatsappLog } from "@/lib/types";
 import { Leaderboard } from "@/components/leaderboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/header";
@@ -54,6 +54,8 @@ export default function Home() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
 
+  const [whatsappLogs, setWhatsappLogs] = useState<WhatsappLog[]>([]);
+
   const handleUpdateScoreClick = (player: Player) => {
     setSelectedPlayer(player);
     setIsUpdateDialogOpen(true);
@@ -95,6 +97,22 @@ export default function Home() {
     setDethroningPlayer(newPlayer);
     setIsWhatsappDialogOpen(true);
   }
+  
+  const handleMessageSent = (log: WhatsappLog) => {
+    setWhatsappLogs(prevLogs => [log, ...prevLogs]);
+    if (log.status === 'success') {
+      toast({
+        title: "Message Sent!",
+        description: `A welcome message was sent to ${log.to}.`,
+      });
+    } else {
+       toast({
+        variant: "destructive",
+        title: "WhatsApp Error",
+        description: `Could not send message to ${log.to}. Check logs.`,
+      });
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -158,26 +176,29 @@ export default function Home() {
             template,
         })
           .then(result => {
-            if (!result.success) {
-              console.error("Failed to send welcome WhatsApp message:", result.error);
-              toast({
-                variant: "destructive",
-                title: "WhatsApp Error",
-                description: `Could not send message to ${addedPlayer.name}. Check logs.`,
-              });
-            } else {
-                 toast({
-                    title: "Message Sent!",
-                    description: `A welcome message was sent to ${addedPlayer.name}.`,
-                });
-            }
+             // Add a new log entry to the client-side state
+             const log: WhatsappLog = {
+                id: new Date().toISOString(),
+                status: result.success ? 'success' : 'failure',
+                to: result.to,
+                template: result.template,
+                payload: result.payload,
+                error: result.error,
+                timestamp: new Date(),
+             };
+             handleMessageSent(log);
           }).catch(error => {
             console.error("Failed to execute sendWhatsappMessage flow:", error);
-            toast({
-                variant: "destructive",
-                title: "Flow Error",
-                description: `A critical error occurred. Check server logs.`,
-            });
+            const log: WhatsappLog = {
+                id: new Date().toISOString(),
+                status: 'failure',
+                to: addedPlayer.phone,
+                template: template,
+                payload: {},
+                error: "A critical error occurred. Check server logs.",
+                timestamp: new Date(),
+            };
+            handleMessageSent(log);
           });
       }
     } else if (newPlayers.length === oldPlayers.length) { // Check for score update
@@ -271,7 +292,7 @@ export default function Home() {
           </div>
           <div className="lg:w-1/3 space-y-8">
             <ActivityLog onSendWhatsapp={handleSendWhatsappClick} />
-            <WhatsappLogViewer />
+            <WhatsappLogViewer logs={whatsappLogs} />
           </div>
         </div>
       </main>
@@ -298,7 +319,11 @@ export default function Home() {
             </DialogDescription>
           </DialogHeader>
           {dethronedPlayer && dethroningPlayer && (
-            <WhatsappModal dethronedPlayer={dethronedPlayer} dethroningPlayer={dethroningPlayer} />
+            <WhatsappModal 
+                dethronedPlayer={dethronedPlayer} 
+                dethroningPlayer={dethroningPlayer}
+                onMessageSent={handleMessageSent}
+            />
           )}
         </DialogContent>
       </Dialog>
