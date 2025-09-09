@@ -15,7 +15,6 @@ import { Twilio } from 'twilio';
 const SendWhatsappInputSchema = z.object({
   to: z.string().describe('The recipient phone number in E.164 format.'),
   template: z.string().describe('The pre-approved Twilio template name (e.g., competition_entry_success).'),
-  contentVariables: z.record(z.string()).optional().describe('An object containing key-value pairs for template variables. e.g. {"1": "John", "2": "leaderboard"}'),
 });
 export type SendWhatsappInput = z.infer<typeof SendWhatsappInputSchema>;
 
@@ -70,18 +69,11 @@ const sendWhatsappFlow = ai.defineFlow(
         contentSid: string;
         from: string;
         to: string;
-        contentVariables?: string;
     } = {
         contentSid: contentSid,
         from: `whatsapp:${fromNumber}`,
         to: `whatsapp:${input.to}`,
     };
-
-    if (input.contentVariables) {
-        // The Twilio helper library expects an object, not a stringified JSON.
-        // It handles the serialization internally.
-        payload.contentVariables = input.contentVariables as any;
-    }
     
     try {
       const client = new Twilio(accountSid, authToken);

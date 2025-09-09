@@ -155,7 +155,6 @@ export default function Home() {
         sendWhatsappMessage({ 
             to: addedPlayer.phone, 
             template,
-            contentVariables: { '1': addedPlayer.name }
         })
           .then(result => {
             if (!result.success) {
