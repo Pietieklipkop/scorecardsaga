@@ -20,7 +20,7 @@ import 'dotenv/config';
 
 const SendWhatsappInputSchema = z.object({
   to: z.string().describe('The recipient phone number in E.164 format.'),
-  template: z.string().describe('The pre-approved Twilio template SID (HX...) to send.'),
+  template: z.string().describe('The pre-approved Twilio template name (e.g., competition_entry_success).'),
 });
 export type SendWhatsappInput = z.infer<typeof SendWhatsappInputSchema>;
 
@@ -46,8 +46,22 @@ const sendWhatsappFlow = ai.defineFlow(
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     const fromNumber = "+27690087576"; // Hardcoded Twilio number
 
+    // IMPORTANT: Replace these placeholder names with your actual HX... template SIDs from Twilio
+    const templateSids: { [key: string]: string } = {
+        'competition_entry_failure': 'HX...', // Replace with your failure SID
+        'competition_entry_success': 'HX...', // Replace with your success SID
+        'competition_entry_leaderboard': 'HX...', // Replace with your leaderboard SID
+    };
+
+    const contentSid = templateSids[input.template];
+    if (!contentSid) {
+        const error = `Template name "${input.template}" is not mapped to a valid SID.`;
+        console.error(error);
+        return { success: false, error: error };
+    }
+
     const payload = {
-        contentSid: input.template,
+        contentSid: contentSid,
         from: `whatsapp:${fromNumber}`,
         to: `whatsapp:${input.to}`,
     };
@@ -72,8 +86,6 @@ const sendWhatsappFlow = ai.defineFlow(
     
     try {
       const client = new Twilio(accountSid, authToken);
-
-      console.log("Sending payload to Twilio:", JSON.stringify(payload, null, 2));
 
       const message = await client.messages.create(payload);
 
