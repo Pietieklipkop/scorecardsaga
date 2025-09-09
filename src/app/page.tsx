@@ -150,8 +150,7 @@ export default function Home() {
         
         // Determine rank and send appropriate WhatsApp message
         const rank = newPlayers.findIndex(p => p.id === addedPlayer.id) + 1;
-        // IMPORTANT: Replace these names with your actual HX... template SIDs from Twilio
-        const template = rank <= 3 ? "HX..." : "HX..."; // Replace with competition_entry_success and competition_entry_failure SIDs
+        const template = rank <= 3 ? "competition_entry_success" : "competition_entry_failure"; 
 
         sendWhatsappMessage({ to: addedPlayer.phone, template })
           .then(result => {
@@ -160,11 +159,21 @@ export default function Home() {
               toast({
                 variant: "destructive",
                 title: "WhatsApp Error",
-                description: "Could not send welcome message. See logs for details.",
+                description: `Could not send message to ${addedPlayer.name}. Check logs.`,
               });
+            } else {
+                 toast({
+                    title: "Message Sent!",
+                    description: `A welcome message was sent to ${addedPlayer.name}.`,
+                });
             }
           }).catch(error => {
             console.error("Failed to execute sendWhatsappMessage flow:", error);
+            toast({
+                variant: "destructive",
+                title: "Flow Error",
+                description: `A critical error occurred. Check server logs.`,
+            });
           });
       }
     } else if (newPlayers.length === oldPlayers.length) { // Check for score update

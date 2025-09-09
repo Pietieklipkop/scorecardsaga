@@ -54,12 +54,7 @@ const sendWhatsappFlow = ai.defineFlow(
     };
 
     const contentSid = templateSids[input.template];
-    if (!contentSid) {
-        const error = `Template name "${input.template}" is not mapped to a valid SID.`;
-        console.error(error);
-        return { success: false, error: error };
-    }
-
+    
     const payload = {
         contentSid: contentSid,
         from: `whatsapp:${fromNumber}`,
@@ -82,6 +77,24 @@ const sendWhatsappFlow = ai.defineFlow(
           console.error("Failed to log whatsapp failure to firestore:", logError)
       }
       return { success: false, error };
+    }
+    
+    if (!contentSid) {
+        const error = `Template name "${input.template}" is not mapped to a valid SID. Check the mapping in send-whatsapp-flow.ts.`;
+         // Log failure to Firestore
+        try {
+            await addDoc(collection(db, "whatsapp_logs"), {
+                to: input.to,
+                message: input.template,
+                success: false,
+                error: error,
+                timestamp: serverTimestamp(),
+                payload: payload,
+            });
+        } catch (logError) {
+            console.error("Failed to log whatsapp failure to firestore:", logError);
+        }
+        return { success: false, error };
     }
     
     try {
