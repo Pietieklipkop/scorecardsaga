@@ -15,6 +15,7 @@ import { Twilio } from 'twilio';
 const SendWhatsappInputSchema = z.object({
   to: z.string().describe('The recipient phone number in E.164 format.'),
   template: z.string().describe('The pre-approved Twilio template name (e.g., competition_entry_success).'),
+  contentVariables: z.record(z.string()).optional().describe('An object containing key-value pairs for template variables. e.g. {"1": "John", "2": "leaderboard"}'),
 });
 export type SendWhatsappInput = z.infer<typeof SendWhatsappInputSchema>;
 
@@ -46,9 +47,9 @@ const sendWhatsappFlow = ai.defineFlow(
     // WhatsApp Templates. Each template has a unique SID starting with "HX".
     // =================================================================================
     const templateSids: { [key: string]: string } = {
-        'competition_entry_failure': 'HXxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 
-        'competition_entry_success': 'HXxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-        'competition_entry_leaderboard': 'HXxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+        'competition_entry_failure': 'HXe4b7f4b1f627b499ebe1c88895bd4c23', 
+        'competition_entry_success': 'HX95d4ea576c704914bc271e6146533d7c',
+        'competition_entry_leaderboard': 'HXe56af55a49b89080ca95ea93b6c5ce10',
     };
     // =================================================================================
 
@@ -65,11 +66,20 @@ const sendWhatsappFlow = ai.defineFlow(
         return { success: false, error };
     }
     
-    const payload = {
+    const payload: {
+        contentSid: string;
+        from: string;
+        to: string;
+        contentVariables?: string;
+    } = {
         contentSid: contentSid,
         from: `whatsapp:${fromNumber}`,
         to: `whatsapp:${input.to}`,
     };
+
+    if (input.contentVariables) {
+        payload.contentVariables = JSON.stringify(input.contentVariables);
+    }
     
     try {
       const client = new Twilio(accountSid, authToken);

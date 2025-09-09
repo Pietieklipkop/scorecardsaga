@@ -152,7 +152,11 @@ export default function Home() {
         const rank = newPlayers.findIndex(p => p.id === addedPlayer.id) + 1;
         const template = rank <= 3 ? "competition_entry_success" : "competition_entry_failure"; 
 
-        sendWhatsappMessage({ to: addedPlayer.phone, template })
+        sendWhatsappMessage({ 
+            to: addedPlayer.phone, 
+            template,
+            contentVariables: { '1': addedPlayer.name }
+        })
           .then(result => {
             if (!result.success) {
               console.error("Failed to send welcome WhatsApp message:", result.error);

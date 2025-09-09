@@ -26,6 +26,10 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer }: WhatsappMod
             const result = await sendWhatsappMessage({
                 to: dethronedPlayer.phone,
                 template: templateName,
+                contentVariables: {
+                    '1': dethronedPlayer.name,
+                    '2': dethroningPlayer.name,
+                }
             });
 
             if (result.success) {
