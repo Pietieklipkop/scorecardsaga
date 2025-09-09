@@ -20,7 +20,7 @@ import 'dotenv/config';
 
 const SendWhatsappInputSchema = z.object({
   to: z.string().describe('The recipient phone number in E.164 format.'),
-  template: z.string().describe('The pre-approved Twilio template name to send.'),
+  template: z.string().describe('The pre-approved Twilio template SID (HX...) to send.'),
 });
 export type SendWhatsappInput = z.infer<typeof SendWhatsappInputSchema>;
 
@@ -46,16 +46,23 @@ const sendWhatsappFlow = ai.defineFlow(
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     const fromNumber = "+27690087576"; // Hardcoded Twilio number
 
+    const payload = {
+        contentSid: input.template,
+        from: `whatsapp:${fromNumber}`,
+        to: `whatsapp:${input.to}`,
+    };
+
     if (!accountSid || !authToken) {
       const error = "Twilio Account SID or Auth Token are not configured in environment variables.";
       // Log failure to Firestore
       try {
         await addDoc(collection(db, "whatsapp_logs"), {
             to: input.to,
-            message: `Template: ${input.template}`,
+            message: input.template, // Log template name
             success: false,
             error: error,
             timestamp: serverTimestamp(),
+            payload: payload,
         });
       } catch (logError) {
           console.error("Failed to log whatsapp failure to firestore:", logError)
@@ -66,12 +73,6 @@ const sendWhatsappFlow = ai.defineFlow(
     try {
       const client = new Twilio(accountSid, authToken);
 
-      const payload = {
-        contentSid: input.template,
-        from: `whatsapp:${fromNumber}`,
-        to: `whatsapp:${input.to}`,
-      };
-
       console.log("Sending payload to Twilio:", JSON.stringify(payload, null, 2));
 
       const message = await client.messages.create(payload);
@@ -79,10 +80,11 @@ const sendWhatsappFlow = ai.defineFlow(
       // Log success to Firestore
       await addDoc(collection(db, "whatsapp_logs"), {
         to: input.to,
-        message: `Template: ${input.template}`,
+        message: input.template, // Log template name
         success: true,
         messageId: message.sid,
         timestamp: serverTimestamp(),
+        payload: payload,
       });
 
       return { success: true, messageId: message.sid };
@@ -94,10 +96,11 @@ const sendWhatsappFlow = ai.defineFlow(
         try {
             await addDoc(collection(db, "whatsapp_logs"), {
                 to: input.to,
-                message: `Template: ${input.template}`,
+                message: input.template, // Log template name
                 success: false,
                 error: errorMessage,
                 timestamp: serverTimestamp(),
+                payload: payload,
             });
         } catch (logError) {
             console.error("Failed to log whatsapp failure to firestore:", logError)

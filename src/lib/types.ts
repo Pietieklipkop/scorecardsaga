@@ -101,15 +101,21 @@ const activityLogEntrySchema = z.discriminatedUnion("type", [
 
 export type ActivityLogEntryData = z.infer<typeof activityLogEntrySchema>;
 
+const twilioPayloadSchema = z.object({
+    contentSid: z.string(),
+    from: z.string(),
+    to: z.string(),
+  });
 
 export const whatsappLogSchema = z.object({
   id: z.string().optional(),
   to: z.string(),
-  message: z.string(),
+  message: z.string(), // This will store the template name
   success: z.boolean(),
   timestamp: z.date(),
   messageId: z.string().optional().nullable(),
   error: z.string().optional().nullable(),
+  payload: twilioPayloadSchema.optional().nullable(),
 });
 
 export type WhatsappLog = z.infer<typeof whatsappLogSchema>;

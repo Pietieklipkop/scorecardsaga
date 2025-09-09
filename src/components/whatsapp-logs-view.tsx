@@ -27,6 +27,7 @@ import {
     AlertDialogCancel,
     AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
+import { Separator } from "./ui/separator";
 
 export function WhatsappLogsView() {
   const { user, loading: authLoading } = useAuth();
@@ -62,10 +63,8 @@ export function WhatsappLogsView() {
   }, [user, authLoading]);
 
   const handleRowClick = (log: WhatsappLog) => {
-    if (log.error) {
-        setSelectedLog(log);
-        setIsErrorDialogOpen(true);
-    }
+    setSelectedLog(log);
+    setIsErrorDialogOpen(true);
   };
 
   if (loading) {
@@ -97,7 +96,7 @@ export function WhatsappLogsView() {
                     <TableRow 
                         key={log.id} 
                         onClick={() => handleRowClick(log)}
-                        className={log.error ? "cursor-pointer hover:bg-muted/50" : ""}
+                        className="cursor-pointer hover:bg-muted/50"
                     >
                         <TableCell>
                             {log.success ? (
@@ -108,7 +107,7 @@ export function WhatsappLogsView() {
                         </TableCell>
                         <TableCell className="font-medium">{log.to}</TableCell>
                         <TableCell>{log.timestamp ? format(log.timestamp, "PPP p") : 'No date'}</TableCell>
-                        <TableCell className="max-w-xs truncate">{log.success ? `SID: ${log.messageId}` : log.error}</TableCell>
+                        <TableCell className="max-w-xs truncate">{log.message}</TableCell>
                     </TableRow>
                     ))
                 ) : (
@@ -123,19 +122,38 @@ export function WhatsappLogsView() {
         </div>
 
         <AlertDialog open={isErrorDialogOpen} onOpenChange={setIsErrorDialogOpen}>
-            <AlertDialogContent>
+            <AlertDialogContent className="max-w-xl">
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Error Details</AlertDialogTitle>
+                    <AlertDialogTitle>Log Details</AlertDialogTitle>
                     <AlertDialogDescription>
-                        The full error message for the failed WhatsApp message is shown below.
+                        The full details of the WhatsApp message attempt are shown below.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-                <div className="mt-4 max-h-60 w-full overflow-y-auto rounded-md border p-4">
-                    <pre className="text-sm text-foreground whitespace-pre-wrap break-words">
-                        <code>{selectedLog?.error}</code>
-                    </pre>
-                </div>
-                <AlertDialogFooter>
+                {selectedLog && (
+                    <div className="mt-4 text-sm space-y-4">
+                        {selectedLog.error && (
+                            <div>
+                                <h3 className="font-semibold text-destructive mb-2">Error Message</h3>
+                                <div className="max-h-40 w-full overflow-y-auto rounded-md border bg-muted/50 p-3">
+                                    <pre className="text-destructive whitespace-pre-wrap break-words font-mono">
+                                        <code>{selectedLog.error}</code>
+                                    </pre>
+                                </div>
+                            </div>
+                        )}
+                        {selectedLog.payload && (
+                             <div>
+                                <h3 className="font-semibold text-foreground mb-2">Twilio Payload</h3>
+                                <div className="max-h-60 w-full overflow-y-auto rounded-md border bg-muted/50 p-3">
+                                    <pre className="text-foreground whitespace-pre-wrap break-words font-mono">
+                                        <code>{JSON.stringify(selectedLog.payload, null, 2)}</code>
+                                    </pre>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+                <AlertDialogFooter className="mt-4">
                     <AlertDialogCancel>Close</AlertDialogCancel>
                 </AlertDialogFooter>
             </AlertDialogContent>
