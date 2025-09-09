@@ -57,6 +57,7 @@ const sendWhatsappFlow = ai.defineFlow(
         contentSid: contentSid,
         from: `whatsapp:${fromNumber}`,
         to: `whatsapp:${input.to}`,
+        contentVariables: {},
     };
 
     if (!accountSid || !authToken) {
