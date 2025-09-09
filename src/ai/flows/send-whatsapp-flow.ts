@@ -40,12 +40,12 @@ const sendWhatsappFlow = ai.defineFlow(
   async (input) => {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const fromNumber = process.env.TWILIO_SENDER_NUMBER || "+14155238886";
+    const fromNumber = process.env.TWILIO_SENDER_NUMBER || "+15558511306";
 
     // IMPORTANT: Replace the placeholder HXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     // with a real Content SID from your Twilio account.
     const templateSids: { [key: string]: string } = {
-        'competition_entry_failure': 'HXe4b7f4b1f627b499ebe1c88895bd4c23', 
+        'competition_entry_failure': 'HX0ec6a7dd8adf7f5b3de2058944dc4fff', 
         'competition_entry_success': 'HX95d4ea576c704914bc271e6146533d7c',
         'competition_entry_leaderboard': 'HXe56af55a49b8080ca95ea93b6c5ce10',
     };
