@@ -150,7 +150,8 @@ export default function Home() {
         
         // Determine rank and send appropriate WhatsApp message
         const rank = newPlayers.findIndex(p => p.id === addedPlayer.id) + 1;
-        const template = rank <= 3 && rank > 0 ? "competition_entry_success" : "competition_entry_failure";
+        // IMPORTANT: Replace these names with your actual HX... template SIDs from Twilio
+        const template = rank <= 3 ? "HX..." : "HX..."; // Replace with competition_entry_success and competition_entry_failure SIDs
 
         sendWhatsappMessage({ to: addedPlayer.phone, template })
           .then(result => {

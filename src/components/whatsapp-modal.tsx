@@ -18,14 +18,15 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer }: WhatsappMod
     const { toast } = useToast();
     const [isSending, setIsSending] = useState(false);
 
-    const templateName = "competition_entry_leaderboard";
+    // IMPORTANT: Replace this name with your actual HX... template SID from Twilio
+    const templateSid = "HX..."; // Replace with competition_entry_leaderboard SID
 
     const handleSend = async () => {
         setIsSending(true);
         try {
             const result = await sendWhatsappMessage({
                 to: dethronedPlayer.phone,
-                template: templateName,
+                template: templateSid,
             });
 
             if (result.success) {
@@ -52,7 +53,7 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer }: WhatsappMod
         <div className="space-y-4">
             <div className="rounded-md border bg-muted/50 p-4">
                 <p className="text-sm font-semibold text-foreground">
-                    Template: <span className="font-mono bg-muted px-1 py-0.5 rounded">{templateName}</span>
+                    Template SID: <span className="font-mono bg-muted px-1 py-0.5 rounded">{templateSid}</span>
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                     This pre-approved template will be sent to {dethronedPlayer.name} to notify them they've been knocked off the leaderboard.
