@@ -177,13 +177,13 @@ export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPla
                                                 {log.newPlayer.name} {log.newPlayer.surname}
                                             </span>
                                         </PlayerTooltip>
-                                        {" "}dethroned{" "}
+                                        {" "}took {getRankString(log.rank)} from{" "}
                                         <PlayerTooltip player={log.oldPlayer}>
                                             <span className="font-semibold text-foreground hover:underline cursor-pointer">
                                                 {log.oldPlayer.name} {log.oldPlayer.surname}
                                             </span>
                                         </PlayerTooltip>
-                                        {" "}from {getRankString(log.rank)}.
+                                        .
                                     </>
                                     )}
                                     {log.type === 'score_update' && (
