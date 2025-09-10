@@ -23,8 +23,8 @@ const getRankIndicator = (rank: number) => {
 
 export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: LeaderboardProps) {
   return (
-    <div>
-       <div className="flex items-center px-4 h-12 rounded-sm border border-[#718CA9] bg-[#718CA9]/60 text-white font-bold mb-2.5 font-recife">
+    <div className="bg-black/50 rounded-lg p-4 backdrop-blur-sm">
+       <div className="flex items-center px-4 h-12 rounded-sm text-white font-bold mb-2.5 font-recife">
         <div className="w-[80px] flex-shrink-0 text-center">Rank</div>
         <div className="flex-1">Player</div>
         <div className="flex-1">Company</div>
@@ -32,14 +32,14 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
         {onUpdateScore && <div className="w-[200px] flex-shrink-0 text-center">Actions</div>}
       </div>
       
-      <div>
+      <div className="space-y-2">
           {players.length > 0 ? (
               players.map((player, index) => {
               const rank = index + 1;
               return (
                   <div 
                       key={player.id || player.email} 
-                      className="flex items-center px-4 py-2 transition-colors border border-[#718CA9] bg-[#718CA9]/60 text-white hover:bg-[#718CA9]/80 rounded-sm"
+                      className="flex items-center px-4 py-2 transition-colors border border-transparent bg-white/10 text-white hover:bg-white/20 rounded-lg"
                   >
                       <div className="w-[80px] flex-shrink-0 flex items-center justify-center">
                           {getRankIndicator(rank)}
@@ -55,7 +55,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
                           )}
                       </div>
                       <div className="flex-1 text-right">
-                          <Badge variant="outline" className="text-lg font-bold border-2 border-primary/50 text-primary bg-primary/10 font-mono tabular-nums">
+                          <Badge variant="outline" className="text-lg font-bold border-2 border-primary/50 text-white bg-primary/20 font-mono tabular-nums">
                               {formatScore(player.score)}
                           </Badge>
                       </div>
