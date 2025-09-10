@@ -144,7 +144,7 @@ export default function Home() {
       return;
     }
   
-    let newLogData: Omit<ActivityLogEntryData, 'timestamp' | 'id'> | null = null;
+    const newLogEntries: Omit<ActivityLogEntryData, 'timestamp' | 'id'>[] = [];
     const createPlayerLogObject = (player: Player) => ({
       id: player.id!,
       name: player.name,
@@ -155,17 +155,53 @@ export default function Home() {
       company: player.company || null,
     });
   
+    const LEADERBOARD_SIZE = 10;
+
     // Check for a player addition
     if (newPlayers.length > oldPlayers.length) {
       const addedPlayer = newPlayers.find(p => !oldPlayers.some(op => op.id === p.id));
       if (addedPlayer) {
-        newLogData = {
-          type: "add",
-          player: createPlayerLogObject(addedPlayer),
-        };
-        
-        // Determine rank and send appropriate WhatsApp message
         const rank = newPlayers.findIndex(p => p.id === addedPlayer.id) + 1;
+
+        let addedLog = false;
+        // Check if the new player is in the top 3 and has dethroned someone
+        if (rank <= 3) {
+          const oldPlayerAtRank = oldPlayers.length >= rank ? oldPlayers[rank - 1] : null;
+          if (oldPlayerAtRank && oldPlayerAtRank.id !== addedPlayer.id) {
+            newLogEntries.push({
+              type: "dethrone",
+              newPlayer: createPlayerLogObject(addedPlayer),
+              oldPlayer: createPlayerLogObject(oldPlayerAtRank),
+              rank: rank,
+            });
+            addedLog = true;
+          }
+        }
+        
+        if (!addedLog) {
+            newLogEntries.push({
+                type: "add",
+                player: createPlayerLogObject(addedPlayer),
+            });
+        }
+
+        // Check if a player was kicked off the top 10
+        if (oldPlayers.length >= LEADERBOARD_SIZE && rank <= LEADERBOARD_SIZE) {
+            const oldTop10Ids = oldPlayers.slice(0, LEADERBOARD_SIZE).map(p => p.id);
+            const newTop10Ids = newPlayers.slice(0, LEADERBOARD_SIZE).map(p => p.id);
+            const kickedOffPlayerId = oldTop10Ids.find(id => !newTop10Ids.includes(id));
+            if (kickedOffPlayerId) {
+                const kickedOffPlayer = oldPlayers.find(p => p.id === kickedOffPlayerId);
+                if (kickedOffPlayer) {
+                    newLogEntries.push({
+                        type: "remove",
+                        player: createPlayerLogObject(kickedOffPlayer),
+                    });
+                }
+            }
+        }
+
+        // Determine rank and send appropriate WhatsApp message
         const template = rank <= 3 ? "competition_entry_success" : "competition_entry_failure"; 
 
         sendWhatsappMessage({ 
@@ -208,46 +244,50 @@ export default function Home() {
         const oldTop3 = oldPlayers.slice(0, 3);
         const newTop3 = newPlayers.slice(0, 3);
   
+        let wasDethrone = false;
         for (let i = 0; i < newTop3.length; i++) {
           const newPlayerAtRank = newTop3[i];
           const oldPlayerAtRank = oldTop3.length > i ? oldTop3[i] : null;
           
           if (newPlayerAtRank.id !== oldPlayerAtRank?.id) {
             if (oldPlayerAtRank && newPlayerAtRank.id === updatedPlayer.id) {
-              newLogData = {
-                type: "dethrone",
-                newPlayer: createPlayerLogObject(updatedPlayer),
-                oldPlayer: createPlayerLogObject(oldPlayerAtRank as Player),
-                rank: i + 1,
-              };
-              break; 
+                newLogEntries.push({
+                    type: "dethrone",
+                    newPlayer: createPlayerLogObject(updatedPlayer),
+                    oldPlayer: createPlayerLogObject(oldPlayerAtRank as Player),
+                    rank: i + 1,
+                });
+                wasDethrone = true;
+                break;
             }
           }
         }
   
-        if (!newLogData) {
-          newLogData = {
-            type: 'score_update',
-            player: createPlayerLogObject(updatedPlayer),
-            scoreChange: scoreDiff,
-          };
+        if (!wasDethrone) {
+            newLogEntries.push({
+                type: 'score_update',
+                player: createPlayerLogObject(updatedPlayer),
+                scoreChange: scoreDiff,
+            });
         }
       }
     } else if (newPlayers.length < oldPlayers.length) { // Check for player removal
       const removedPlayer = oldPlayers.find(p => !newPlayers.some(np => np.id === p.id));
       if (removedPlayer) {
-        newLogData = {
-          type: "remove",
-          player: createPlayerLogObject(removedPlayer),
-        };
+        newLogEntries.push({
+            type: "remove",
+            player: createPlayerLogObject(removedPlayer),
+        });
       }
     }
   
-    if (newLogData) {
-      addDoc(collection(db, "activity_logs"), {
-        ...newLogData,
-        timestamp: serverTimestamp(),
-      });
+    if (newLogEntries.length > 0) {
+        for (const logData of newLogEntries) {
+            addDoc(collection(db, "activity_logs"), {
+                ...logData,
+                timestamp: serverTimestamp(),
+            });
+        }
     }
   
     prevPlayersRef.current = newPlayers;
