@@ -77,7 +77,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
               );
               })
           ) : (
-            <div className="flex items-center justify-center h-48 text-center text-muted-foreground bg-card rounded-sm">
+            <div className="flex items-center justify-center h-48 text-center text-white border border-[#536B94] bg-[#536B94]/80 rounded-[3px]">
                 The leaderboard is empty. Add a player to get started!
             </div>
           )}
