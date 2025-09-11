@@ -51,7 +51,8 @@ const sendWhatsappFlow = ai.defineFlow(
     const contentSid = templateSids[input.template];
     
     let logData: any = {
-      ...input,
+      to: input.to,
+      template: input.template,
       payload: null, // Initialize payload as null
       status: 'pending',
       timestamp: serverTimestamp(),
