@@ -170,7 +170,7 @@ export default function Home() {
 
         sendWhatsappMessage({ 
             to: addedPlayer.phone, 
-            template,
+            template: template,
         })
           .then(result => {
              if (!result.success) {

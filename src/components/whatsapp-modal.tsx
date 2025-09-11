@@ -19,14 +19,12 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer, onMessageSent
     const [isSending, setIsSending] = useState(false);
     const { toast } = useToast();
 
-    const templateName = "competition_entry_leaderboard";
-
     const handleSend = async () => {
         setIsSending(true);
         try {
             const result = await sendWhatsappMessage({
                 to: dethronedPlayer.phone,
-                template: templateName,
+                template: "dethrone_notification", // This is now a fixed value, ignored by the flow
             });
             onMessageSent(result);
         } catch (error: any) {
@@ -43,11 +41,8 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer, onMessageSent
     return (
         <div className="space-y-4">
             <div className="rounded-md border bg-muted/50 p-4">
-                <p className="text-sm font-semibold text-foreground">
-                    Template: <span className="font-mono bg-muted px-1 py-0.5 rounded">{templateName}</span>
-                </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                    This pre-approved template will be sent to {dethronedPlayer.name} to notify them they've been knocked off the leaderboard.
+                    A pre-approved template will be sent to {dethronedPlayer.name} to notify them they've been knocked off the leaderboard.
                 </p>
             </div>
              <Alert variant="destructive">
