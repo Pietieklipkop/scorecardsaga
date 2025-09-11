@@ -3,7 +3,6 @@
 
 import type { Player } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { sendWhatsappMessage } from "@/ai/flows/send-whatsapp-flow";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Info } from "lucide-react";
@@ -22,10 +21,20 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer, onMessageSent
     const handleSend = async () => {
         setIsSending(true);
         try {
-            const result = await sendWhatsappMessage({
-                to: dethronedPlayer.phone,
+            const response = await fetch('/api/send-whatsapp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ to: dethronedPlayer.phone }),
             });
-            onMessageSent(result);
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to send message');
+            }
+            
+            onMessageSent({ success: true });
+
         } catch (error: any) {
              const result = {
                 success: false,

@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/dialog";
 import { UpdateScoreForm } from "@/components/update-score-form";
 import { WhatsappModal } from "@/components/whatsapp-modal";
-import { sendWhatsappMessage } from "@/ai/flows/send-whatsapp-flow";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -117,31 +116,32 @@ export default function Home() {
   const handleConfirmAndSend = async () => {
     if (!playerForWhatsapp) return;
 
-    sendWhatsappMessage({ 
-        to: playerForWhatsapp.phone,
-    })
-      .then(result => {
-         if (!result.success) {
-           console.error("Failed to send welcome WhatsApp message:", result.error);
-           toast({
-             variant: "destructive",
-             title: "WhatsApp Error",
-             description: `Could not send message. Check logs.`,
-           });
-         } else {
-            toast({
-                title: "Message Sent!",
-                description: `A welcome message was sent to ${playerForWhatsapp.phone}.`,
-            });
-         }
-      }).catch(error => {
-        console.error("Failed to execute sendWhatsappMessage flow:", error);
-        toast({
-            variant: "destructive",
-            title: "Critical Error",
-            description: `Could not send message. Check server logs.`,
-        });
+    try {
+      const response = await fetch('/api/send-whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: playerForWhatsapp.phone }),
       });
+      
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send message');
+      }
+
+      toast({
+        title: "Message Sent!",
+        description: `A welcome message was sent to ${playerForWhatsapp.phone}.`,
+      });
+
+    } catch (error: any) {
+      console.error("Failed to send welcome WhatsApp message:", error);
+      toast({
+        variant: "destructive",
+        title: "WhatsApp Error",
+        description: error.message || `Could not send message. Check logs.`,
+      });
+    }
     
     setIsConfirmWhatsappOpen(false);
     setPlayerForWhatsapp(null);
