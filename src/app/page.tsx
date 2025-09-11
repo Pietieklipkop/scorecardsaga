@@ -164,13 +164,8 @@ export default function Home() {
           player: createPlayerLogObject(addedPlayer),
         };
         
-        // Determine rank and send appropriate WhatsApp message
-        const rank = newPlayers.findIndex(p => p.id === addedPlayer.id) + 1;
-        const template = rank <= 3 ? "competition_entry_success" : "competition_entry_failure"; 
-
         sendWhatsappMessage({ 
-            to: addedPlayer.phone, 
-            template: template,
+            to: addedPlayer.phone,
         })
           .then(result => {
              if (!result.success) {

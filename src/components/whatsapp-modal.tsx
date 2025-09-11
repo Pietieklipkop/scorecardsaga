@@ -24,7 +24,6 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer, onMessageSent
         try {
             const result = await sendWhatsappMessage({
                 to: dethronedPlayer.phone,
-                template: "dethrone_notification", // This is now a fixed value, ignored by the flow
             });
             onMessageSent(result);
         } catch (error: any) {

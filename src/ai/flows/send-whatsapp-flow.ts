@@ -16,7 +16,6 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const SendWhatsappInputSchema = z.object({
   to: z.string().describe('The recipient phone number in E.164 format.'),
-  template: z.string().describe('The pre-approved Twilio template name (e.g., competition_entry_success).'),
 });
 export type SendWhatsappInput = z.infer<typeof SendWhatsappInputSchema>;
 
@@ -53,8 +52,8 @@ const sendWhatsappFlow = ai.defineFlow(
 
     let logData: any = {
       to: input.to,
-      template: input.template, // Still log the original template name for context
-      payload: payload, // Log the ACTUAL payload being sent
+      template: `SID: ${contentSid}`,
+      payload: payload,
       status: 'pending',
       timestamp: serverTimestamp(),
       error: null,
