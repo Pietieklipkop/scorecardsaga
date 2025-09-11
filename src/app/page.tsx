@@ -54,6 +54,9 @@ export default function Home() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
 
+  const [isConfirmWhatsappOpen, setIsConfirmWhatsappOpen] = useState(false);
+  const [playerForWhatsapp, setPlayerForWhatsapp] = useState<Player | null>(null);
+
   const handleUpdateScoreClick = (player: Player) => {
     setSelectedPlayer(player);
     setIsUpdateDialogOpen(true);
@@ -111,6 +114,39 @@ export default function Home() {
     }
   };
 
+  const handleConfirmAndSend = async () => {
+    if (!playerForWhatsapp) return;
+
+    sendWhatsappMessage({ 
+        to: playerForWhatsapp.phone,
+    })
+      .then(result => {
+         if (!result.success) {
+           console.error("Failed to send welcome WhatsApp message:", result.error);
+           toast({
+             variant: "destructive",
+             title: "WhatsApp Error",
+             description: `Could not send message. Check logs.`,
+           });
+         } else {
+            toast({
+                title: "Message Sent!",
+                description: `A welcome message was sent to ${playerForWhatsapp.phone}.`,
+            });
+         }
+      }).catch(error => {
+        console.error("Failed to execute sendWhatsappMessage flow:", error);
+        toast({
+            variant: "destructive",
+            title: "Critical Error",
+            description: `Could not send message. Check server logs.`,
+        });
+      });
+    
+    setIsConfirmWhatsappOpen(false);
+    setPlayerForWhatsapp(null);
+  }
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
@@ -164,31 +200,8 @@ export default function Home() {
           player: createPlayerLogObject(addedPlayer),
         };
         
-        sendWhatsappMessage({ 
-            to: addedPlayer.phone,
-        })
-          .then(result => {
-             if (!result.success) {
-               console.error("Failed to send welcome WhatsApp message:", result.error);
-               toast({
-                 variant: "destructive",
-                 title: "WhatsApp Error",
-                 description: `Could not send message. Check logs.`,
-               });
-             } else {
-                toast({
-                    title: "Message Sent!",
-                    description: `A welcome message was sent to ${addedPlayer.phone}.`,
-                });
-             }
-          }).catch(error => {
-            console.error("Failed to execute sendWhatsappMessage flow:", error);
-            toast({
-                variant: "destructive",
-                title: "Critical Error",
-                description: `Could not send message. Check server logs.`,
-            });
-          });
+        setPlayerForWhatsapp(addedPlayer);
+        setIsConfirmWhatsappOpen(true);
       }
     } else if (newPlayers.length === oldPlayers.length) { // Check for score update
       const updatedPlayer = newPlayers.find(np => {
@@ -260,6 +273,12 @@ export default function Home() {
       </div>
     );
   }
+
+  const PAYLOAD_STRUCTURE = {
+    contentSid: 'HX0ec6a7dd8adf7f5b3de2058944dc4fff',
+    from: `whatsapp:${process.env.NEXT_PUBLIC_TWILIO_SENDER_NUMBER || "+15558511306"}`,
+    to: `whatsapp:${playerForWhatsapp?.phone}`,
+  };
 
   return (
     <>
@@ -334,6 +353,36 @@ export default function Home() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={isConfirmWhatsappOpen} onOpenChange={setIsConfirmWhatsappOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm WhatsApp Message</AlertDialogTitle>
+            <AlertDialogDescription>
+              A request will be sent to Twilio to send a WhatsApp message. Please review the details below.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="mt-4 space-y-4 text-sm">
+            <div>
+              <h3 className="font-semibold mb-1">API Endpoint</h3>
+              <p className="font-mono bg-muted p-2 rounded-md break-all text-xs">POST https://api.twilio.com/2010-04-01/Accounts/[AccountSid]/Messages.json</p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-1">Payload</h3>
+              <pre className="bg-muted p-2 rounded-md text-xs overflow-auto">
+                  {JSON.stringify(PAYLOAD_STRUCTURE, null, 2)}
+              </pre>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPlayerForWhatsapp(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAndSend}>
+              Confirm & Send
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </>
   );
 }
