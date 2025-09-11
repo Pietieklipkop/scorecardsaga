@@ -4,19 +4,29 @@ import { Twilio } from 'twilio';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
-export async function POST(request: Request) {
-  const { to } = await request.json();
+// Map template identifiers to Twilio Content SIDs
+const templateSidMap: Record<string, string> = {
+  comp_success: 'HX...success_sid', // Replace with your actual success template SID
+  comp_failure: 'HX0ec6a7dd8adf7f5b3de2058944dc4fff', // The one we've been testing
+  comp_dethrone: 'HX...dethrone_sid', // Replace with your actual dethrone template SID
+};
 
-  if (!to) {
-    return NextResponse.json({ success: false, error: 'Recipient phone number is required.' }, { status: 400 });
+
+export async function POST(request: Request) {
+  const { to, template } = await request.json();
+
+  if (!to || !template) {
+    return NextResponse.json({ success: false, error: 'Recipient phone number and template identifier are required.' }, { status: 400 });
+  }
+
+  const contentSid = templateSidMap[template];
+  if (!contentSid) {
+    return NextResponse.json({ success: false, error: `Invalid template identifier: ${template}` }, { status: 400 });
   }
 
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   const fromNumber = process.env.TWILIO_SENDER_NUMBER || "+15558511306";
-  
-  // HARDCODED SID FOR DEBUGGING
-  const contentSid = 'HX0ec6a7dd8adf7f5b3de2058944dc4fff';
     
   const payload = {
       contentSid: contentSid,
@@ -26,7 +36,7 @@ export async function POST(request: Request) {
 
   let logData: any = {
     to: to,
-    template: `SID: ${contentSid}`,
+    template: `${template} (SID: ${contentSid})`,
     payload: payload,
     status: 'pending',
     timestamp: serverTimestamp(),

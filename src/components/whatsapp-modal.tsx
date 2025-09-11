@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Info } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 interface WhatsappModalProps {
     dethronedPlayer: Player;
@@ -16,15 +15,17 @@ interface WhatsappModalProps {
 
 export function WhatsappModal({ dethronedPlayer, dethroningPlayer, onMessageSent }: WhatsappModalProps) {
     const [isSending, setIsSending] = useState(false);
-    const { toast } = useToast();
-
+    
     const handleSend = async () => {
         setIsSending(true);
         try {
             const response = await fetch('/api/send-whatsapp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ to: dethronedPlayer.phone }),
+                body: JSON.stringify({ 
+                    to: dethronedPlayer.phone,
+                    template: 'comp_dethrone' 
+                }),
             });
 
             const result = await response.json();
@@ -38,7 +39,7 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer, onMessageSent
         } catch (error: any) {
              const result = {
                 success: false,
-                error: error.message || "A critical error occurred while executing the flow.",
+                error: error.message || "A critical error occurred.",
             };
             onMessageSent(result);
         } finally {
@@ -49,20 +50,20 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer, onMessageSent
     return (
         <div className="space-y-4">
             <div className="rounded-md border bg-muted/50 p-4">
+                 <p className="text-sm">
+                    Dethroned Player: <span className="font-semibold">{dethronedPlayer.name} {dethronedPlayer.surname}</span>
+                </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                    A pre-approved template will be sent to {dethronedPlayer.name} to notify them they've been knocked off the leaderboard.
+                    A pre-approved template will be sent to notify them they've been knocked off the leaderboard by {dethroningPlayer.name}.
                 </p>
             </div>
              <Alert variant="destructive">
                 <Info className="h-4 w-4" />
                 <AlertTitle>Important: Template & 24-Hour Window</AlertTitle>
                 <AlertDescription>
-                    Ensure your template is approved and that the user has messaged your business number within the last 24 hours.
+                    Ensure your 'comp_dethrone' template is approved and that the user has messaged your business number within the last 24 hours.
                 </AlertDescription>
             </Alert>
-            <p className="text-sm text-muted-foreground">
-                Clicking the button will attempt to send the template message via WhatsApp.
-            </p>
             <Button onClick={handleSend} className="w-full" disabled={isSending}>
                 {isSending ? "Sending..." : "Send Dethrone Notification"}
             </Button>

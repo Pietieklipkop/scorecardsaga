@@ -54,7 +54,7 @@ export default function Home() {
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
 
   const [isConfirmWhatsappOpen, setIsConfirmWhatsappOpen] = useState(false);
-  const [playerForWhatsapp, setPlayerForWhatsapp] = useState<Player | null>(null);
+  const [playerForWhatsapp, setPlayerForWhatsapp] = useState<{player: Player, template: string} | null>(null);
 
   const handleUpdateScoreClick = (player: Player) => {
     setSelectedPlayer(player);
@@ -120,7 +120,10 @@ export default function Home() {
       const response = await fetch('/api/send-whatsapp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: playerForWhatsapp.phone }),
+        body: JSON.stringify({ 
+          to: playerForWhatsapp.player.phone,
+          template: playerForWhatsapp.template,
+        }),
       });
       
       const result = await response.json();
@@ -131,7 +134,7 @@ export default function Home() {
 
       toast({
         title: "Message Sent!",
-        description: `A welcome message was sent to ${playerForWhatsapp.phone}.`,
+        description: `A welcome message was sent to ${playerForWhatsapp.player.phone}.`,
       });
 
     } catch (error: any) {
@@ -200,7 +203,9 @@ export default function Home() {
           player: createPlayerLogObject(addedPlayer),
         };
         
-        setPlayerForWhatsapp(addedPlayer);
+        const rank = newPlayers.findIndex(p => p.id === addedPlayer.id) + 1;
+        const template = rank <= 3 ? "comp_success" : "comp_failure";
+        setPlayerForWhatsapp({ player: addedPlayer, template: template });
         setIsConfirmWhatsappOpen(true);
       }
     } else if (newPlayers.length === oldPlayers.length) { // Check for score update
@@ -275,9 +280,9 @@ export default function Home() {
   }
 
   const PAYLOAD_STRUCTURE = {
-    contentSid: 'HX0ec6a7dd8adf7f5b3de2058944dc4fff',
+    contentSid: "HX...(SID based on template)",
     from: `whatsapp:${process.env.NEXT_PUBLIC_TWILIO_SENDER_NUMBER || "+15558511306"}`,
-    to: `whatsapp:${playerForWhatsapp?.phone}`,
+    to: `whatsapp:${playerForWhatsapp?.player?.phone}`,
   };
 
   return (
@@ -363,6 +368,10 @@ export default function Home() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="mt-4 space-y-4 text-sm">
+            <div>
+                <h3 className="font-semibold mb-1">Template</h3>
+                <p className="font-mono bg-muted p-2 rounded-md break-all text-xs">{playerForWhatsapp?.template}</p>
+            </div>
             <div>
               <h3 className="font-semibold mb-1">API Endpoint</h3>
               <p className="font-mono bg-muted p-2 rounded-md break-all text-xs">POST https://api.twilio.com/2010-04-01/Accounts/[AccountSid]/Messages.json</p>
