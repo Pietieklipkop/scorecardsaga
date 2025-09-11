@@ -45,10 +45,16 @@ const sendWhatsappFlow = ai.defineFlow(
     // HARDCODED SID FOR DEBUGGING
     const contentSid = 'HX0ec6a7dd8adf7f5b3de2058944dc4fff';
     
+    const payload = {
+        contentSid: contentSid,
+        from: `whatsapp:${fromNumber}`,
+        to: `whatsapp:${input.to}`,
+    };
+
     let logData: any = {
       to: input.to,
       template: input.template, // Still log the original template name for context
-      payload: null,
+      payload: payload, // Log the ACTUAL payload being sent
       status: 'pending',
       timestamp: serverTimestamp(),
       error: null,
@@ -69,14 +75,6 @@ const sendWhatsappFlow = ai.defineFlow(
       const logRef = await addDoc(collection(db, "whatsapp_logs"), logData);
       return { success: false, logId: logRef.id, error: logData.error };
     }
-
-    const payload = {
-        contentSid: contentSid,
-        from: `whatsapp:${fromNumber}`,
-        to: `whatsapp:${input.to}`,
-    };
-
-    logData.payload = payload;
     
     try {
       const client = new Twilio(accountSid, authToken);
