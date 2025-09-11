@@ -19,6 +19,7 @@ For up to date documentation on the tech stack used in this project:
 - DaisyUI: https://daisyui.com/llms.txt
 - Playwright: https://context7.com/microsoft/playwright/llms.txt
 - Vitest: https://context7.com/vitest-dev/vitest/llms.txt
+- Twilio: https://context7.com/twilio/twilio-node/llms.txt
 
 ---
 
