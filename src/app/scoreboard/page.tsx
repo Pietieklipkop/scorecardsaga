@@ -34,7 +34,7 @@ export default function ScoreboardPage() {
       <div className="container mx-auto px-4 py-8 md:py-12 flex-grow flex flex-col">
         <div className="flex justify-between items-center mb-6 p-4 rounded-lg">
             <h1 className="text-3xl font-bold text-white font-raleway">INN8 LEADERBOARD</h1>
-            <h2 className="text-5xl font-bold text-white font-recife">Speed Test Challenge</h2>
+            <h2 className="hidden md:block text-5xl font-bold text-white font-recife">Speed Test Challenge</h2>
         </div>
         {loading ? (
             <div className="space-y-4 p-4 rounded-lg">
