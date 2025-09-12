@@ -140,10 +140,14 @@ export default function Home() {
         querySnapshot.forEach((doc) => {
           playersData.push({ id: doc.id, ...doc.data() } as Player);
         });
-        setPlayers(playersData);
+        
         if (isInitialLoad) {
+          prevPlayersRef.current = playersData;
+          setPlayers(playersData);
           setLoading(false);
           setIsInitialLoad(false); 
+        } else {
+          setPlayers(playersData);
         }
       });
 
@@ -340,5 +344,7 @@ export default function Home() {
     </>
   );
 }
+
+    
 
     
