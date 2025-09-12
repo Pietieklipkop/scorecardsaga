@@ -25,11 +25,11 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
   return (
     <div className="rounded-lg p-4">
        <div className="flex items-center px-4 h-12 text-white font-bold font-raleway border border-[#87B7EE] bg-[#223B4D] rounded-[3px] mb-[5px]">
-        <div className="w-[15%] text-left">Rank</div>
-        <div className="w-[30%]">Player</div>
-        <div className="w-[30%]">Company</div>
-        <div className="w-[15%] text-left">Score</div>
-        {onUpdateScore && <div className="flex-1 text-center">Actions</div>}
+        <div className="flex-none w-20 text-left">Rank</div>
+        <div className="flex-1 text-left">Player</div>
+        <div className="flex-1 text-left">Company</div>
+        <div className="flex-none w-28 text-left">Score</div>
+        {onUpdateScore && <div className="flex-none w-48 text-center">Actions</div>}
       </div>
       
       <div className="space-y-0">
@@ -41,26 +41,26 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
                       key={player.id || player.email} 
                       className="flex items-center px-4 py-2 transition-colors text-white border border-[#87B7EE] bg-[#223B4D] rounded-[3px]"
                   >
-                      <div className="w-[15%] flex items-center justify-start">
+                      <div className="flex-none w-20 flex items-center justify-start">
                           {getRankIndicator(rank)}
                       </div>
-                      <div className="w-[30%] flex items-center font-raleway">
+                      <div className="flex-1 flex items-center font-raleway text-left">
                           <div className="font-bold">{player.name} {player.surname}</div>
                       </div>
-                      <div className="w-[30%] font-raleway">
+                      <div className="flex-1 font-raleway text-left">
                           {player.company ? (
                               <div className="text-sm">{player.company}</div>
                           ) : (
                               <div className="text-sm text-white/50">N/A</div>
                           )}
                       </div>
-                      <div className="w-[15%] text-left">
+                      <div className="flex-none w-28 text-left">
                           <Badge variant="outline" className="text-lg font-bold border-2 border-primary/50 text-white bg-primary/20 font-mono tabular-nums">
                               {formatScore(player.score)}
                           </Badge>
                       </div>
                       {onUpdateScore && (
-                          <div className="flex-1 flex justify-center gap-2">
+                          <div className="flex-none w-48 flex justify-center gap-2">
                               <Button variant="outline" size="sm" onClick={() => onUpdateScore(player)} className="text-foreground hover:text-accent-foreground">
                                   <TrendingUp className="mr-2 h-4 w-4" />
                                   Update
