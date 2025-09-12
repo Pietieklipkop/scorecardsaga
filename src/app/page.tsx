@@ -41,7 +41,6 @@ export default function Home() {
   const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const prevPlayersRef = useRef<Player[]>([]);
 
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
@@ -140,11 +139,6 @@ export default function Home() {
         querySnapshot.forEach((doc) => {
           playersData.push({ id: doc.id, ...doc.data() } as Player);
         });
-        
-        if (isInitialLoad) {
-          prevPlayersRef.current = playersData;
-          setIsInitialLoad(false); 
-        }
         setPlayers(playersData);
         setLoading(false);
       });
@@ -154,7 +148,7 @@ export default function Home() {
   }, [user]);
 
   useEffect(() => {
-    if (isInitialLoad || !user) return;
+    if (!user) return;
   
     const oldPlayers = prevPlayersRef.current;
     const newPlayers = players;
@@ -258,7 +252,7 @@ export default function Home() {
     }
   
     prevPlayersRef.current = newPlayers;
-  }, [players, isInitialLoad, user]);
+  }, [JSON.stringify(players), user]);
 
   if (authLoading || !user) {
     return (
