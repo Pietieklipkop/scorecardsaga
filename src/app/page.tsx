@@ -174,7 +174,7 @@ export default function Home() {
           playersData.push({ id: doc.id, ...doc.data() } as Player);
         });
         setPlayers(playersData);
-        if (loading) {
+        if (isInitialLoad) {
           setLoading(false);
           setIsInitialLoad(false); 
         }
@@ -182,7 +182,7 @@ export default function Home() {
 
       return () => unsubscribe();
     }
-  }, [user, loading]);
+  }, [user, isInitialLoad]);
 
   useEffect(() => {
     if (isInitialLoad || !user) return;
@@ -217,17 +217,19 @@ export default function Home() {
           // Send comp_success to new player
           newQueue.push({ player: addedPlayer, template: "comp_success" });
 
-          // Check if someone was pushed out of top 3
+          // Get top 3 players before the new player was added
           const oldTop3 = oldPlayers.slice(0, 3);
-          const newTop3 = newPlayers.slice(0, 3);
-          
-          if(oldPlayers.length >= 3) {
-            const bumpedPlayer = oldTop3.find(p => !newTop3.map(np => np.id).includes(p.id));
-            if (bumpedPlayer) {
-                // Send comp_dethrone to bumped player
-                newQueue.push({ player: bumpedPlayer, template: "comp_dethrone" });
+          const newTop3Ids = newPlayers.slice(0, 3).map(p => p.id);
+
+          // Check which players from old top 3 were displaced
+          oldTop3.forEach((oldTopPlayer, oldIndex) => {
+            const newIndex = newPlayers.findIndex(p => p.id === oldTopPlayer.id);
+
+            // If the player is no longer in top 3, or their rank has changed, send dethrone message
+            if (newIndex === -1 || newIndex > 2 || newIndex !== oldIndex) {
+                 newQueue.push({ player: oldTopPlayer, template: "comp_dethrone" });
             }
-          }
+          });
         } else {
             // Send comp_failure to new player
             newQueue.push({ player: addedPlayer, template: "comp_failure" });
@@ -379,7 +381,7 @@ export default function Home() {
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the player
               <span className="font-semibold"> {playerToDelete?.name} {playerToDelete?.surname}</span> and their data.
-            </AlertDialogDescription>
+            </DialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
