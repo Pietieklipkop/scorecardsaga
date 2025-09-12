@@ -143,17 +143,15 @@ export default function Home() {
         
         if (isInitialLoad) {
           prevPlayersRef.current = playersData;
-          setPlayers(playersData);
-          setLoading(false);
           setIsInitialLoad(false); 
-        } else {
-          setPlayers(playersData);
         }
+        setPlayers(playersData);
+        setLoading(false);
       });
 
       return () => unsubscribe();
     }
-  }, [user, isInitialLoad]);
+  }, [user]);
 
   useEffect(() => {
     if (isInitialLoad || !user) return;
@@ -344,7 +342,3 @@ export default function Home() {
     </>
   );
 }
-
-    
-
-    
