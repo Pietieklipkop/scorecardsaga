@@ -6,9 +6,9 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 // Map template identifiers to Twilio Content SIDs
 const templateSidMap: Record<string, string> = {
-  comp_success: 'HX...success_sid', // Replace with your actual success template SID
+  comp_success: 'HX9c322831b8fdf42ff90d91f2c9975543', // Replace with your actual success template SID
   comp_failure: 'HX0ec6a7dd8adf7f5b3de2058944dc4fff', // The one we've been testing
-  comp_dethrone: 'HX...dethrone_sid', // Replace with your actual dethrone template SID
+  comp_dethrone: 'HXf25d7c2afadfa8dd3fae449d354b436f', // Replace with your actual dethrone template SID
 };
 
 

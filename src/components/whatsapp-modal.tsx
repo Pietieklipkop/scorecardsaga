@@ -9,7 +9,7 @@ import { Info } from "lucide-react";
 
 interface WhatsappModalProps {
     dethronedPlayer: Player;
-    dethroningPlayer: Player;
+    dethroningPlayer?: Player | null; // Can be null if dethroned by a new player joining
     onMessageSent: (result: { success: boolean, error?: string }) => void;
 }
 
@@ -46,6 +46,8 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer, onMessageSent
             setIsSending(false);
         }
     };
+    
+    const dethronerName = dethroningPlayer ? `${dethroningPlayer.name} ${dethroningPlayer.surname}` : "a new player";
 
     return (
         <div className="space-y-4">
@@ -54,7 +56,7 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer, onMessageSent
                     Dethroned Player: <span className="font-semibold">{dethronedPlayer.name} {dethronedPlayer.surname}</span>
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                    A pre-approved template will be sent to notify them they've been knocked off the leaderboard by {dethroningPlayer.name}.
+                    A pre-approved template will be sent to notify them they've been knocked off the leaderboard by {dethronerName}.
                 </p>
             </div>
              <Alert variant="destructive">
@@ -70,3 +72,5 @@ export function WhatsappModal({ dethronedPlayer, dethroningPlayer, onMessageSent
         </div>
     );
 }
+
+    
