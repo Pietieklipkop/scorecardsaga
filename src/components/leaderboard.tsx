@@ -24,11 +24,11 @@ const getRankIndicator = (rank: number) => {
 export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: LeaderboardProps) {
   return (
     <div className="rounded-lg p-4">
-       <div className="flex items-center px-4 h-12 text-white font-bold font-raleway border border-[#87B7EE] bg-[#223B4D] rounded-[3px] mb-[5px]">
-        <div className="flex-none w-20 text-left">Rank</div>
-        <div className="flex-1 text-left">Player</div>
-        <div className="flex-1 text-left">Company</div>
-        <div className="flex-none w-24 text-left">Score</div>
+       <div className="flex items-center px-4 h-12 text-white border border-[#87B7EE] bg-[#223B4D] rounded-[3px] mb-[5px]">
+        <div className="flex-none w-20 text-left font-raleway font-bold">Rank</div>
+        <div className="flex-1 text-left font-raleway font-bold">Player</div>
+        <div className="flex-1 text-left font-raleway font-bold">Company</div>
+        <div className="flex-none w-[4.5rem] text-center font-raleway font-bold">Score</div>
         {onUpdateScore && <div className="flex-none w-48 text-center">Actions</div>}
       </div>
       
@@ -54,7 +54,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
                               <div className="text-sm text-white/50">N/A</div>
                           )}
                       </div>
-                      <div className="flex-none w-24 text-left">
+                      <div className="flex-none w-[4.5rem] flex justify-center">
                           <Badge variant="outline" className="text-lg font-bold border-2 border-primary/50 text-white bg-primary/20 font-mono tabular-nums">
                               {formatScore(player.score)}
                           </Badge>
