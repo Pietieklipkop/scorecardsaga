@@ -28,7 +28,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
         <div className="flex-none w-20 text-left">Rank</div>
         <div className="flex-1 text-left">Player</div>
         <div className="flex-1 text-left">Company</div>
-        <div className="flex-none w-28 text-left">Score</div>
+        <div className="flex-none w-24 text-left">Score</div>
         {onUpdateScore && <div className="flex-none w-48 text-center">Actions</div>}
       </div>
       
@@ -54,7 +54,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
                               <div className="text-sm text-white/50">N/A</div>
                           )}
                       </div>
-                      <div className="flex-none w-28 text-left">
+                      <div className="flex-none w-24 text-left">
                           <Badge variant="outline" className="text-lg font-bold border-2 border-primary/50 text-white bg-primary/20 font-mono tabular-nums">
                               {formatScore(player.score)}
                           </Badge>
