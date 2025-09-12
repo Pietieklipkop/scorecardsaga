@@ -124,6 +124,7 @@ export const whatsappLogSchema = z.object({
     payload: z.any().optional(),
     error: z.string().optional().nullable(),
     timestamp: z.date(),
+    messageInstance: z.any().optional(),
 });
 
 export type WhatsappLog = z.infer<typeof whatsappLogSchema>;

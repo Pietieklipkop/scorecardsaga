@@ -138,6 +138,12 @@ export function WhatsappLogViewer() {
                                 {JSON.stringify(selectedLog.payload, null, 2)}
                             </pre>
                         </div>
+                        <div>
+                            <h3 className="font-semibold mb-1">Message Instance</h3>
+                            <pre className="bg-muted p-2 rounded-md text-xs overflow-auto">
+                                {JSON.stringify(selectedLog, null, 2)}
+                            </pre>
+                        </div>
                     </div>
                 )}
             </DialogContent>

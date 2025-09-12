@@ -53,8 +53,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const client = new Twilio(accountSid, authToken);
-    await client.messages.create(payload);
+    const client = new Twilio(accountSid, authToken, {logLevel: 'debug'});
+    const tmp = await client.messages.create(payload);
+    logData.messageInstance = `${tmp.sid}>>${tmp.apiVersion}>>${tmp.body}>>${tmp.status}>>${tmp.errorCode}>>${tmp.errorMessage}`;
+    console.log("payload", payload, "tmp", tmp);
     
     logData.status = 'success';
     const logRef = await addDoc(collection(db, "whatsapp_logs"), logData);

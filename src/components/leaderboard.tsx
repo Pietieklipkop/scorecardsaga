@@ -24,7 +24,7 @@ const getRankIndicator = (rank: number) => {
 export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: LeaderboardProps) {
   return (
     <div className="rounded-lg p-4">
-       <div className="flex items-center px-4 h-12 text-white font-bold font-recife border border-[#536B94] bg-[#536B94]/80 rounded-[3px] mb-[5px]">
+       <div className="flex items-center px-4 h-12 text-white font-bold font-recife border border-[#87B7EE] bg-[#223B4D] rounded-[3px] mb-[5px]">
         <div className="w-[80px] flex-shrink-0 text-center">Rank</div>
         <div className="flex-1">Player</div>
         <div className="flex-1">Company</div>
@@ -39,7 +39,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
               return (
                   <div 
                       key={player.id || player.email} 
-                      className="flex items-center px-4 py-2 transition-colors text-white border border-[#536B94] bg-[#536B94]/80 rounded-[3px]"
+                      className="flex items-center px-4 py-2 transition-colors text-white border border-[#87B7EE] bg-[#223B4D] rounded-[3px]"
                   >
                       <div className="w-[80px] flex-shrink-0 flex items-center justify-center">
                           {getRankIndicator(rank)}
@@ -77,7 +77,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
               );
               })
           ) : (
-            <div className="flex items-center justify-center h-48 text-center text-white border border-[#536B94] bg-[#536B94]/80 rounded-[3px]">
+            <div className="flex items-center justify-center h-48 text-center text-white border border-[#87B7EE] bg-[#223B4D] rounded-[3px]">
                 The leaderboard is empty. Add a player to get started!
             </div>
           )}
