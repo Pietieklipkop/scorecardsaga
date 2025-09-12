@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { Player, LogEntry, ActivityLogEntryData } from "@/lib/types";
+import type { Player, ActivityLogEntryData } from "@/lib/types";
 import { Leaderboard } from "@/components/leaderboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/header";
@@ -220,14 +220,13 @@ export default function Home() {
           // Check if someone was pushed out of top 3
           const oldTop3 = oldPlayers.slice(0, 3);
           const newTop3 = newPlayers.slice(0, 3);
-          const oldTop3Ids = oldTop3.map(p => p.id);
-          const newTop3Ids = newTop3.map(p => p.id);
-
-          const bumpedPlayer = oldTop3.find(p => !newTop3Ids.includes(p.id));
           
-          if (bumpedPlayer) {
-            // Send comp_dethrone to bumped player
-            newQueue.push({ player: bumpedPlayer, template: "comp_dethrone" });
+          if(oldPlayers.length >= 3) {
+            const bumpedPlayer = oldTop3.find(p => !newTop3.map(np => np.id).includes(p.id));
+            if (bumpedPlayer) {
+                // Send comp_dethrone to bumped player
+                newQueue.push({ player: bumpedPlayer, template: "comp_dethrone" });
+            }
           }
         } else {
             // Send comp_failure to new player
@@ -295,7 +294,7 @@ export default function Home() {
     }
   
     prevPlayersRef.current = newPlayers;
-  }, [players, loading, user, toast]);
+  }, [players, loading, user]);
 
   if (authLoading || !user) {
     return (
@@ -436,5 +435,3 @@ export default function Home() {
     </>
   );
 }
-
-    
