@@ -45,7 +45,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
                           {getRankIndicator(rank)}
                       </div>
                       <div className="flex-1 flex items-center font-raleway text-left">
-                          <div className="font-bold">{player.name} {player.surname}</div>
+                          <div>{player.name} {player.surname}</div>
                       </div>
                       <div className="flex-1 font-raleway text-left">
                           {player.company ? (
