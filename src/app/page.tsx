@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -46,6 +47,7 @@ export default function Home() {
   const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const prevPlayersRef = useRef<Player[]>([]);
 
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
@@ -172,23 +174,21 @@ export default function Home() {
           playersData.push({ id: doc.id, ...doc.data() } as Player);
         });
         setPlayers(playersData);
-        setLoading(false);
+        if (loading) {
+          setLoading(false);
+          setIsInitialLoad(false); 
+        }
       });
 
       return () => unsubscribe();
     }
-  }, [user]);
+  }, [user, loading]);
 
   useEffect(() => {
-    if (loading || !user) return;
+    if (isInitialLoad || !user) return;
   
     const oldPlayers = prevPlayersRef.current;
     const newPlayers = players;
-  
-    if (oldPlayers.length === 0) {
-      prevPlayersRef.current = newPlayers;
-      return;
-    }
   
     let newLogData: Omit<ActivityLogEntryData, 'timestamp' | 'id'> | null = null;
     const createPlayerLogObject = (player: Player) => ({
@@ -294,7 +294,7 @@ export default function Home() {
     }
   
     prevPlayersRef.current = newPlayers;
-  }, [players, loading, user]);
+  }, [players, isInitialLoad, user]);
 
   if (authLoading || !user) {
     return (
