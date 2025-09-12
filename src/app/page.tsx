@@ -21,7 +21,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { UpdateScoreForm } from "@/components/update-score-form";
-import { WhatsappModal } from "@/components/whatsapp-modal";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -33,6 +32,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { PlayerDetailsModal } from "@/components/player-details-modal";
+
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
@@ -46,12 +47,11 @@ export default function Home() {
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
-  const [isWhatsappDialogOpen, setIsWhatsappDialogOpen] = useState(false);
-  const [dethronedPlayer, setDethronedPlayer] = useState<Player | null>(null);
-  const [dethroningPlayer, setDethroningPlayer] = useState<Player | null>(null);
-
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
+  
+  const [isPlayerDetailsOpen, setIsPlayerDetailsOpen] = useState(false);
+  const [playerForDetails, setPlayerForDetails] = useState<Player | null>(null);
 
   const handleUpdateScoreClick = (player: Player) => {
     setSelectedPlayer(player);
@@ -66,6 +66,11 @@ export default function Home() {
   const handleDeleteClick = (player: Player) => {
     setPlayerToDelete(player);
     setIsDeleteDialogOpen(true);
+  };
+  
+  const handlePlayerClick = (player: Player) => {
+    setPlayerForDetails(player);
+    setIsPlayerDetailsOpen(true);
   };
 
   const confirmDeletePlayer = async () => {
@@ -86,27 +91,6 @@ export default function Home() {
     } finally {
       setIsDeleteDialogOpen(false);
       setPlayerToDelete(null);
-    }
-  };
-
-  const handleSendWhatsappClick = (dethronedPlayer: Player, newPlayer: Player) => {
-    setDethronedPlayer(dethronedPlayer);
-    setDethroningPlayer(newPlayer);
-    setIsWhatsappDialogOpen(true);
-  }
-  
-  const handleMessageSent = (result: { success: boolean, to?: string, error?: string }) => {
-    if (result.success) {
-      toast({
-        title: "Message Sent!",
-        description: `A welcome message was sent to ${result.to}.`,
-      });
-    } else {
-       toast({
-        variant: "destructive",
-        title: "WhatsApp Error",
-        description: `Could not send message to ${result.to}. Check logs.`,
-      });
     }
   };
 
@@ -302,11 +286,16 @@ export default function Home() {
                 <Skeleton className="h-12 w-full" />
               </div>
             ) : (
-              <Leaderboard players={players} onUpdateScore={handleUpdateScoreClick} onDeletePlayer={handleDeleteClick} />
+              <Leaderboard 
+                players={players} 
+                onUpdateScore={handleUpdateScoreClick} 
+                onDeletePlayer={handleDeleteClick}
+                onPlayerClick={handlePlayerClick}
+              />
             )}
           </div>
           <div className="lg:w-1/3 space-y-8">
-            <ActivityLog onSendWhatsapp={handleSendWhatsappClick} />
+            <ActivityLog />
             <WhatsappLogViewer />
           </div>
         </div>
@@ -324,24 +313,12 @@ export default function Home() {
           {selectedPlayer && <UpdateScoreForm player={selectedPlayer} onFormSubmitted={handleUpdateFormSubmitted} />}
         </DialogContent>
       </Dialog>
-
-      <Dialog open={isWhatsappDialogOpen} onOpenChange={setIsWhatsappDialogOpen}>
-        <DialogContent className="sm:max-w-[480px]">
-          <DialogHeader>
-            <DialogTitle>Send Dethrone Notification</DialogTitle>
-             <DialogDescription>
-              A pre-approved template message will be sent to the dethroned player.
-            </DialogDescription>
-          </DialogHeader>
-          {dethronedPlayer && (
-            <WhatsappModal 
-                dethronedPlayer={dethronedPlayer} 
-                dethroningPlayer={dethroningPlayer}
-                onMessageSent={(result) => handleMessageSent({ ...result, to: dethronedPlayer.phone })}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      
+      <PlayerDetailsModal 
+        player={playerForDetails}
+        isOpen={isPlayerDetailsOpen}
+        onOpenChange={setIsPlayerDetailsOpen}
+      />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>

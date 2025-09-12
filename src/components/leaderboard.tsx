@@ -11,6 +11,7 @@ interface LeaderboardProps {
   players: Player[];
   onUpdateScore?: (player: Player) => void;
   onDeletePlayer?: (player: Player) => void;
+  onPlayerClick?: (player: Player) => void;
 }
 
 const getRankIndicator = (rank: number) => {
@@ -21,7 +22,7 @@ const getRankIndicator = (rank: number) => {
 };
 
 
-export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: LeaderboardProps) {
+export function Leaderboard({ players, onUpdateScore, onDeletePlayer, onPlayerClick }: LeaderboardProps) {
   return (
     <div className="rounded-lg p-4">
        <div className="flex items-center px-4 h-12 text-white border border-[#87B7EE] bg-[#223B4D] rounded-[3px] mb-[5px]">
@@ -36,10 +37,12 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
           {players.length > 0 ? (
               players.map((player, index) => {
               const rank = index + 1;
+              const isClickable = !!onPlayerClick;
               return (
                   <div 
                       key={player.id || player.email} 
-                      className="flex items-center px-4 py-2 transition-colors text-white border border-[#87B7EE] bg-[#223B4D] rounded-[3px]"
+                      onClick={() => onPlayerClick?.(player)}
+                      className={`flex items-center px-4 py-2 transition-colors text-white border border-[#87B7EE] bg-[#223B4D] rounded-[3px] ${isClickable ? 'cursor-pointer hover:bg-[#2c4c64]' : ''}`}
                   >
                       <div className="flex-none w-20 flex items-center justify-start">
                           {getRankIndicator(rank)}
@@ -61,12 +64,12 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
                       </div>
                       {onUpdateScore && (
                           <div className="flex-none w-48 flex justify-center gap-2">
-                              <Button variant="outline" size="sm" onClick={() => onUpdateScore(player)} className="text-foreground hover:text-accent-foreground">
+                              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onUpdateScore(player); }} className="text-foreground hover:text-accent-foreground">
                                   <TrendingUp className="mr-2 h-4 w-4" />
                                   Update
                               </Button>
                               {onDeletePlayer && (
-                                <Button variant="destructive" size="icon" onClick={() => onDeletePlayer(player)}>
+                                <Button variant="destructive" size="icon" onClick={(e) => { e.stopPropagation(); onDeletePlayer(player); }}>
                                     <Trash2 className="h-4 w-4" />
                                     <span className="sr-only">Delete</span>
                                 </Button>
@@ -85,3 +88,5 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: Leaderbo
     </div>
   );
 }
+
+    
