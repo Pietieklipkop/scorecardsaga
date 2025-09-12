@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -219,7 +218,6 @@ export default function Home() {
 
           // Get top 3 players before the new player was added
           const oldTop3 = oldPlayers.slice(0, 3);
-          const newTop3Ids = newPlayers.slice(0, 3).map(p => p.id);
 
           // Check which players from old top 3 were displaced
           oldTop3.forEach((oldTopPlayer, oldIndex) => {
@@ -381,7 +379,7 @@ export default function Home() {
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the player
               <span className="font-semibold"> {playerToDelete?.name} {playerToDelete?.surname}</span> and their data.
-            </DialogDescription>
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -433,7 +431,8 @@ export default function Home() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
     </>
   );
 }
+
+    
