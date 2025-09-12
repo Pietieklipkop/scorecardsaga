@@ -34,12 +34,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-
-type PlayerForWhatsapp = {
-  player: Player;
-  template: string;
-};
-
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
@@ -58,9 +52,6 @@ export default function Home() {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
-
-  const [isConfirmWhatsappOpen, setIsConfirmWhatsappOpen] = useState(false);
-  const [whatsappQueue, setWhatsappQueue] = useState<PlayerForWhatsapp[]>([]);
 
   const handleUpdateScoreClick = (player: Player) => {
     setSelectedPlayer(player);
@@ -119,44 +110,37 @@ export default function Home() {
     }
   };
 
-  const handleConfirmAndSend = async () => {
-    if (whatsappQueue.length === 0) return;
+  const sendWhatsappMessage = async (player: Player, template: string) => {
+    try {
+        const response = await fetch('/api/send-whatsapp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              to: player.phone,
+              template: template,
+            }),
+        });
+        
+        const result = await response.json();
 
-    for (const item of whatsappQueue) {
-        try {
-            const response = await fetch('/api/send-whatsapp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                to: item.player.phone,
-                template: item.template,
-                }),
-            });
-            
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || 'Failed to send message');
-            }
-
-            toast({
-                title: "Message Sent!",
-                description: `A message was sent to ${item.player.phone}.`,
-            });
-
-        } catch (error: any) {
-            console.error("Failed to send WhatsApp message:", error);
-            toast({
-                variant: "destructive",
-                title: "WhatsApp Error",
-                description: error.message || `Could not send message to ${item.player.phone}. Check logs.`,
-            });
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to send message');
         }
+
+        toast({
+            title: "Message Sent!",
+            description: `A '${template}' message was sent to ${player.phone}.`,
+        });
+
+    } catch (error: any) {
+        console.error("Failed to send WhatsApp message:", error);
+        toast({
+            variant: "destructive",
+            title: "WhatsApp Error",
+            description: error.message || `Could not send message to ${player.phone}. Check logs.`,
+        });
     }
-    
-    setIsConfirmWhatsappOpen(false);
-    setWhatsappQueue([]);
-  }
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -210,11 +194,10 @@ export default function Home() {
         };
         
         const rank = newPlayers.findIndex(p => p.id === addedPlayer.id) + 1;
-        const newQueue: PlayerForWhatsapp[] = [];
 
         if (rank <= 3) {
           // Send comp_success to new player
-          newQueue.push({ player: addedPlayer, template: "comp_success" });
+          sendWhatsappMessage(addedPlayer, "comp_success");
 
           // Get top 3 players before the new player was added
           const oldTop3 = oldPlayers.slice(0, 3);
@@ -225,17 +208,12 @@ export default function Home() {
 
             // If the player is no longer in top 3, or their rank has changed, send dethrone message
             if (newIndex === -1 || newIndex > 2 || newIndex !== oldIndex) {
-                 newQueue.push({ player: oldTopPlayer, template: "comp_dethrone" });
+                 sendWhatsappMessage(oldTopPlayer, "comp_dethrone");
             }
           });
         } else {
             // Send comp_failure to new player
-            newQueue.push({ player: addedPlayer, template: "comp_failure" });
-        }
-        
-        if (newQueue.length > 0) {
-            setWhatsappQueue(newQueue);
-            setIsConfirmWhatsappOpen(true);
+            sendWhatsappMessage(addedPlayer, "comp_failure");
         }
       }
     } else if (newPlayers.length === oldPlayers.length) { // Check for score update
@@ -309,13 +287,6 @@ export default function Home() {
     );
   }
 
-  const getPayloadStructure = (item?: PlayerForWhatsapp) => ({
-    contentSid: "HX...(SID based on template)",
-    from: `whatsapp:${process.env.NEXT_PUBLIC_TWILIO_SENDER_NUMBER || "+15558511306"}`,
-    to: `whatsapp:${item?.player?.phone}`,
-  });
-
-
   return (
     <>
       <Header />
@@ -385,48 +356,6 @@ export default function Home() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeletePlayer} className="bg-destructive hover:bg-destructive/90">
               Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={isConfirmWhatsappOpen} onOpenChange={setIsConfirmWhatsappOpen}>
-        <AlertDialogContent className="max-h-[90vh] overflow-y-auto">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm WhatsApp Message(s)</AlertDialogTitle>
-            <AlertDialogDescription>
-              A request will be sent to Twilio for each message below. Please review the details.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="mt-4 space-y-6 text-sm">
-            {whatsappQueue.map((item, index) => (
-                <div key={index} className="border p-4 rounded-lg">
-                    <h3 className="font-semibold mb-2 text-base">Message {index + 1} of {whatsappQueue.length}</h3>
-                    <div>
-                        <p className="font-semibold mb-1">To</p>
-                        <p className="font-mono bg-muted p-2 rounded-md break-all text-xs">{item.player.name} {item.player.surname} ({item.player.phone})</p>
-                    </div>
-                    <div>
-                        <p className="font-semibold mb-1 mt-2">Template</p>
-                        <p className="font-mono bg-muted p-2 rounded-md break-all text-xs">{item.template}</p>
-                    </div>
-                    <div>
-                        <p className="font-semibold mb-1 mt-2">Example Payload</p>
-                        <pre className="bg-muted p-2 rounded-md text-xs overflow-auto">
-                            {JSON.stringify(getPayloadStructure(item), null, 2)}
-                        </pre>
-                    </div>
-                </div>
-            ))}
-             <div>
-              <h3 className="font-semibold mb-1">API Endpoint</h3>
-              <p className="font-mono bg-muted p-2 rounded-md break-all text-xs">POST https://api.twilio.com/2010-04-01/Accounts/[AccountSid]/Messages.json</p>
-            </div>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setWhatsappQueue([])}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmAndSend}>
-              Confirm & Send All
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
