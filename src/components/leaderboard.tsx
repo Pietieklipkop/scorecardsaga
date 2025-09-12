@@ -24,7 +24,7 @@ const getRankIndicator = (rank: number) => {
 export function Leaderboard({ players, onUpdateScore, onDeletePlayer }: LeaderboardProps) {
   return (
     <div className="rounded-lg p-4">
-       <div className="flex items-center px-4 h-12 text-white font-bold font-recife border border-[#87B7EE] bg-[#223B4D] rounded-[3px] mb-[5px]">
+       <div className="flex items-center px-4 h-12 text-white font-bold font-raleway border border-[#87B7EE] bg-[#223B4D] rounded-[3px] mb-[5px]">
         <div className="w-[80px] flex-shrink-0 text-center">Rank</div>
         <div className="flex-1">Player</div>
         <div className="flex-1">Company</div>
