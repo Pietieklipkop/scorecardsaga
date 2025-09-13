@@ -5,12 +5,12 @@ import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDEIJGIZoPtO5EcfrHzJQvtUUpaZZdf5vs",
-  authDomain: "scoreboard-saga-yoi5v.firebaseapp.com",
-  projectId: "scoreboard-saga-yoi5v",
-  storageBucket: "scoreboard-saga-yoi5v.firebasestorage.app",
-  messagingSenderId: "41563317452",
-  appId: "1:41563317452:web:96fb29442ee591d31b8e69"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 // Initialize Firebase
