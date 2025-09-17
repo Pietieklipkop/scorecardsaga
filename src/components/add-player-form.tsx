@@ -73,7 +73,7 @@ _Fairtree. Values-driven Investing._`;
       const finalPlayerData: Omit<Player, 'id' | 'termsAccepted'> = {
         ...playerData,
         score: scoreInSeconds,
-        retries: 0,
+        retries: 1,
       };
 
       // --- Start of new proactive notification logic ---
