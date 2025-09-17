@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { collection, query, onSnapshot, orderBy, deleteDoc, doc } from "firebase/firestore";
+import { useState, useEffect, useRef } from "react";
+import { collection, query, onSnapshot, orderBy, deleteDoc, doc, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Player, WhatsappMessage } from "@/lib/types";
 import { Leaderboard } from "@/components/leaderboard";
@@ -32,12 +32,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { PlayerDetailsModal } from "@/components/player-details-modal";
 import { WhatsappSimulation } from "@/components/whatsapp-simulation";
+import { diff } from 'deep-object-diff';
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
+  const previousPlayersRef = useRef<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
@@ -103,7 +105,30 @@ export default function Home() {
         querySnapshot.forEach((doc) => {
           playersData.push({ id: doc.id, ...doc.data() } as Player);
         });
+
+        const previousPlayers = previousPlayersRef.current;
+        
+        // Only run change detection if there are previous players to compare against
+        if (previousPlayers.length > 0 && Object.keys(diff(previousPlayers, playersData)).length > 0) {
+            const previousTop3 = previousPlayers.slice(0, 3);
+            const currentTop3 = playersData.slice(0, 3);
+
+            previousTop3.forEach(async (prevPlayer, index) => {
+                const newRank = playersData.findIndex(p => p.id === prevPlayer.id);
+                // If player was in top 3 and now is not, or their rank got worse
+                if (newRank === -1 || newRank > index) {
+                    const message = `Hi ${prevPlayer.name}, you've moved down on the Scoreboard Saga leaderboard. Keep pushing to reclaim your spot!`;
+                    await addDoc(collection(db, "whatsapp_messaging"), {
+                        phone: prevPlayer.phone,
+                        message: message,
+                        timestamp: new Date()
+                    });
+                }
+            });
+        }
+
         setPlayers(playersData);
+        previousPlayersRef.current = playersData;
         setLoading(false);
       });
 
