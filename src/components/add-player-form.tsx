@@ -56,6 +56,26 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
       
       await addDoc(collection(db, "players"), finalPlayerData);
 
+      // Zapier Webhook
+      try {
+        await fetch("https://hooks.zapier.com/hooks/catch/22651131/u448d9d/", {
+          method: "POST",
+          body: JSON.stringify({
+            "First Name": data.name,
+            "Last Name": data.surname,
+            "Email": data.email,
+            "Phone Number": data.phone,
+            "Company": data.company,
+            "Event Tag": "INN825",
+          }),
+        });
+      } catch (webhookError) {
+        console.error("Error sending data to Zapier webhook: ", webhookError);
+        // We don't want to block the user flow if the webhook fails,
+        // so we just log the error and continue.
+      }
+
+
       toast({
         title: "Player Added",
         description: `${data.name} ${data.surname} has been added to the scoreboard.`,
