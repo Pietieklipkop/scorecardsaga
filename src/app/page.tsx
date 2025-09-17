@@ -32,6 +32,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { PlayerDetailsModal } from "@/components/player-details-modal";
 import { WhatsappSimulation } from "@/components/whatsapp-simulation";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
+import { ChevronsUpDown } from "lucide-react";
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
@@ -46,6 +49,7 @@ export default function Home() {
   const [isPlayerDetailsOpen, setIsPlayerDetailsOpen] = useState(false);
   const [playerForDetails, setPlayerForDetails] = useState<Player | null>(null);
   const [whatsappMessages, setWhatsappMessages] = useState<WhatsappMessage[]>([]);
+  const [isWhatsappOpen, setIsWhatsappOpen] = useState(true);
 
 
   const handleUpdateScoreClick = (player: Player) => {
@@ -164,7 +168,23 @@ export default function Home() {
           )}
         </div>
         <div className="mt-12">
-            <WhatsappSimulation messages={whatsappMessages} />
+          <Collapsible
+              open={isWhatsappOpen}
+              onOpenChange={setIsWhatsappOpen}
+            >
+            <WhatsappSimulation 
+              messages={whatsappMessages} 
+              collapsibleTrigger={
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="w-9 p-0">
+                    <ChevronsUpDown className="h-4 w-4" />
+                    <span className="sr-only">Toggle</span>
+                  </Button>
+                </CollapsibleTrigger>
+              }
+              collapsibleContentWrapper={(children) => <CollapsibleContent>{children}</CollapsibleContent>}
+            />
+          </Collapsible>
         </div>
       </main>
       <Footer players={players} />
