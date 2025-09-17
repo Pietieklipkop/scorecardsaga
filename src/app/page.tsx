@@ -46,8 +46,6 @@ export default function Home() {
   const [isPlayerDetailsOpen, setIsPlayerDetailsOpen] = useState(false);
   const [playerForDetails, setPlayerForDetails] = useState<Player | null>(null);
   const [whatsappMessages, setWhatsappMessages] = useState<WhatsappMessage[]>([]);
-  const previousPlayersRef = useRef<Player[]>([]);
-  const isInitialLoad = useRef(true);
 
 
   const handleUpdateScoreClick = (player: Player) => {
@@ -91,18 +89,6 @@ export default function Home() {
     }
   };
 
-  const addWhatsappMessage = async (phone: string, body: string) => {
-    try {
-      await addDoc(collection(db, "whatsapp_logs"), {
-        phone,
-        body,
-        timestamp: serverTimestamp(),
-      });
-    } catch (error) {
-      console.error("Error adding whatsapp log: ", error);
-    }
-  };
-
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
@@ -118,34 +104,7 @@ export default function Home() {
         querySnapshot.forEach((doc) => {
           playersData.push({ id: doc.id, ...doc.data() } as Player);
         });
-        
-        if (isInitialLoad.current) {
-          isInitialLoad.current = false;
-        } else {
-          const oldPlayers = previousPlayersRef.current;
-          
-          const oldPlayerMap = new Map(oldPlayers.map((p, i) => [p.id, { ...p, rank: i + 1 }]));
-          const newPlayerMap = new Map(playersData.map((p, i) => [p.id, { ...p, rank: i + 1 }]));
-
-          // Check for dethronements from top 3
-          const oldTop3 = oldPlayers.slice(0, 3);
-          
-          oldTop3.forEach((oldPlayer, oldRankIndex) => {
-            const oldRank = oldRankIndex + 1;
-            const newPlayerData = newPlayerMap.get(oldPlayer.id);
-
-            if (newPlayerData && newPlayerData.rank > oldRank) {
-               const newRank = newPlayerData.rank;
-               // Find who took their spot
-              const dethroner = playersData[oldRankIndex];
-              const messageBody = `You've been knocked from position ${oldRank} to ${newRank} by ${dethroner?.name ?? 'a new player'}. Your new score to beat is ${dethroner ? dethroner.score : 'N/A'}.`;
-              addWhatsappMessage(oldPlayer.phone, messageBody);
-            }
-          });
-        }
-        
         setPlayers(playersData);
-        previousPlayersRef.current = playersData;
         setLoading(false);
       });
 
