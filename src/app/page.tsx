@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { collection, query, onSnapshot, orderBy, deleteDoc, doc, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { Player, WhatsappMessage } from "@/lib/types";
+import type { Player } from "@/lib/types";
 import { Leaderboard } from "@/components/leaderboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/header";
@@ -31,7 +31,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { PlayerDetailsModal } from "@/components/player-details-modal";
-import { WhatsappSimulation } from "@/components/whatsapp-simulation";
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
@@ -45,7 +44,6 @@ export default function Home() {
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
   const [isPlayerDetailsOpen, setIsPlayerDetailsOpen] = useState(false);
   const [playerForDetails, setPlayerForDetails] = useState<Player | null>(null);
-  const [whatsappMessages, setWhatsappMessages] = useState<WhatsappMessage[]>([]);
 
 
   const handleUpdateScoreClick = (player: Player) => {
@@ -108,19 +106,8 @@ export default function Home() {
         setLoading(false);
       });
 
-      // Listener for whatsapp logs
-      const qLogs = query(collection(db, "whatsapp_logs"), orderBy("timestamp", "desc"));
-      const unsubscribeLogs = onSnapshot(qLogs, (querySnapshot) => {
-          const logsData: WhatsappMessage[] = [];
-          querySnapshot.forEach((doc) => {
-              logsData.push({ id: doc.id, ...doc.data() } as WhatsappMessage);
-          });
-          setWhatsappMessages(logsData);
-      });
-
       return () => {
         unsubscribePlayers();
-        unsubscribeLogs();
       };
     }
   }, [user]);
@@ -142,28 +129,23 @@ export default function Home() {
     <>
       <Header />
       <main className="container mx-auto px-4 py-8 md:py-12 flex-grow">
-        <div className="flex flex-col gap-8">
-          <div className="w-full">
-            {loading ? (
-              <div className="rounded-xl border bg-card text-card-foreground shadow-lg p-4 space-y-4">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-              </div>
-            ) : (
-              <Leaderboard 
-                players={players} 
-                onUpdateScore={handleUpdateScoreClick} 
-                onDeletePlayer={handleDeleteClick}
-                onPlayerClick={handlePlayerClick}
-              />
-            )}
-          </div>
-          <div className="w-full">
-            <WhatsappSimulation messages={whatsappMessages} />
-          </div>
+        <div className="w-full">
+          {loading ? (
+            <div className="rounded-xl border bg-card text-card-foreground shadow-lg p-4 space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          ) : (
+            <Leaderboard 
+              players={players} 
+              onUpdateScore={handleUpdateScoreClick} 
+              onDeletePlayer={handleDeleteClick}
+              onPlayerClick={handlePlayerClick}
+            />
+          )}
         </div>
       </main>
       <Footer players={players} />
