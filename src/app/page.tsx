@@ -141,17 +141,17 @@ export default function Home() {
           playersData.push({ id: doc.id, ...doc.data() } as Player);
         });
         
+        setPlayers(playersData);
         if (isInitialLoad) {
           prevPlayersRef.current = playersData;
+          setLoading(false);
           setIsInitialLoad(false); 
         }
-        setPlayers(playersData);
-        setLoading(false);
       });
 
       return () => unsubscribe();
     }
-  }, [user]);
+  }, [user, isInitialLoad]);
 
   useEffect(() => {
     if (isInitialLoad || !user) return;
@@ -159,7 +159,6 @@ export default function Home() {
     const oldPlayers = prevPlayersRef.current;
     const newPlayers = players;
   
-    let newLogData: Omit<ActivityLogEntryData, 'timestamp' | 'id'> | null = null;
     const createPlayerLogObject = (player: Player) => ({
       id: player.id!,
       name: player.name,
@@ -170,90 +169,50 @@ export default function Home() {
       company: player.company || null,
     });
   
-    // Check for a player addition
-    if (newPlayers.length > oldPlayers.length) {
+    // Check for a player addition or score update
+    if (newPlayers.length > oldPlayers.length || (newPlayers.length === oldPlayers.length && JSON.stringify(newPlayers) !== JSON.stringify(oldPlayers))) {
+      const oldTop3 = oldPlayers.slice(0, 3);
+      const newTop3 = newPlayers.slice(0, 3);
+      const newTop3Ids = newTop3.map(p => p.id);
+
       const addedPlayer = newPlayers.find(p => !oldPlayers.some(op => op.id === p.id));
-      if (addedPlayer) {
-        newLogData = {
-          type: "add",
-          player: createPlayerLogObject(addedPlayer),
-        };
-        
-        const rank = newPlayers.findIndex(p => p.id === addedPlayer.id) + 1;
-
-        if (rank <= 3) {
-          // Send comp_success to new player
-          sendWhatsappMessage(addedPlayer, "comp_success");
-
-          // Get top 3 players before the new player was added
-          const oldTop3 = oldPlayers.slice(0, 3);
-
-          // Check which players from old top 3 were displaced
-          oldTop3.forEach((oldTopPlayer, oldIndex) => {
-            const newIndex = newPlayers.findIndex(p => p.id === oldTopPlayer.id);
-
-            // If the player is no longer in top 3, or their rank has changed, send dethrone message
-            if (newIndex === -1 || newIndex > 2 || newIndex !== oldIndex) {
-                 sendWhatsappMessage(oldTopPlayer, "comp_dethrone");
-            }
-          });
-        } else {
-            // Send comp_failure to new player
-            sendWhatsappMessage(addedPlayer, "comp_failure");
-        }
-      }
-    } else if (newPlayers.length === oldPlayers.length) { // Check for score update
       const updatedPlayer = newPlayers.find(np => {
         const op = oldPlayers.find(op => op.id === np.id);
         return op && op.score !== np.score;
       });
-  
-      if (updatedPlayer) {
-        const scoreDiff = (oldPlayers.find(op => op.id === updatedPlayer.id)?.score || 0) - updatedPlayer.score;
-  
-        // Check for dethroning in top 3
-        const oldTop3 = oldPlayers.slice(0, 3);
-        const newTop3 = newPlayers.slice(0, 3);
-  
-        for (let i = 0; i < newTop3.length; i++) {
-          const newPlayerAtRank = newTop3[i];
-          const oldPlayerAtRank = oldTop3.length > i ? oldTop3[i] : null;
-          
-          if (newPlayerAtRank.id !== oldPlayerAtRank?.id) {
-            if (oldPlayerAtRank && newPlayerAtRank.id === updatedPlayer.id) {
-              newLogData = {
-                type: "dethrone",
-                newPlayer: createPlayerLogObject(updatedPlayer),
-                oldPlayer: createPlayerLogObject(oldPlayerAtRank as Player),
-                rank: i + 1,
-              };
-              break; 
-            }
+
+      const changedPlayer = addedPlayer || updatedPlayer;
+
+      if(changedPlayer){
+          const rank = newPlayers.findIndex(p => p.id === changedPlayer.id) + 1;
+          if (rank <= 3) {
+            sendWhatsappMessage(changedPlayer, "comp_success");
+          } else if (addedPlayer){
+            sendWhatsappMessage(addedPlayer, "comp_failure");
           }
-        }
-  
-        if (!newLogData) {
-          newLogData = {
-            type: 'score_update',
-            player: createPlayerLogObject(updatedPlayer),
-            scoreChange: scoreDiff,
-          };
-        }
       }
-    } else if (newPlayers.length < oldPlayers.length) { // Check for player removal
-      const removedPlayer = oldPlayers.find(p => !newPlayers.some(np => np.id === p.id));
-      if (removedPlayer) {
-        newLogData = {
-          type: "remove",
-          player: createPlayerLogObject(removedPlayer),
-        };
-      }
-    }
-  
-    if (newLogData) {
-      addDoc(collection(db, "activity_logs"), {
-        ...newLogData,
-        timestamp: serverTimestamp(),
+
+      // Check which players from old top 3 were displaced
+      oldTop3.forEach((oldTopPlayer, oldIndex) => {
+        const newIndex = newPlayers.findIndex(p => p.id === oldTopPlayer.id);
+
+        // If the player is no longer in top 3, or their rank has changed within top 3, send dethrone message
+        if (newIndex === -1 || newIndex > 2) {
+             sendWhatsappMessage(oldTopPlayer, "comp_dethrone");
+             const dethroningPlayer = newTop3[oldIndex];
+             if(dethroningPlayer){
+                const newLogData: Omit<ActivityLogEntryData, 'timestamp' | 'id'> = {
+                    type: "dethrone",
+                    newPlayer: createPlayerLogObject(dethroningPlayer),
+                    oldPlayer: createPlayerLogObject(oldTopPlayer),
+                    rank: oldIndex + 1,
+                };
+                addDoc(collection(db, "activity_logs"), {
+                    ...newLogData,
+                    timestamp: serverTimestamp(),
+                });
+             }
+        }
       });
     }
   
