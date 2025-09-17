@@ -3,7 +3,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { doc, updateDoc } from "firebase/firestore"; 
+import { doc, updateDoc, collection, query, getDocs, orderBy, addDoc } from "firebase/firestore"; 
 import { db } from "@/lib/firebase";
 import { z } from "zod";
 
@@ -56,6 +56,24 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
     },
   });
 
+  const sendDethroneMessage = async (dethronedPlayer: Player) => {
+    // Prevent sending a notification to the player whose score is being updated
+    if (dethronedPlayer.id === player.id) {
+      return;
+    }
+    const message = `Hi ${dethronedPlayer.name}, you've moved down on the Scoreboard Saga leaderboard. Keep pushing to reclaim your spot!`;
+    try {
+      await addDoc(collection(db, "whatsapp_messaging"), {
+        phone: dethronedPlayer.phone,
+        message: message,
+        timestamp: new Date()
+      });
+    } catch (error) {
+      console.error("Error sending dethrone message:", error);
+    }
+  };
+
+
   async function onSubmit(data: z.infer<typeof formSchema>) {
     if (!player.id) {
         toast({
@@ -69,6 +87,32 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
     try {
       const playerRef = doc(db, "players", player.id);
       const scoreInSeconds = timeStringToSeconds(data.score);
+
+      // --- Start of proactive notification logic for updates ---
+      const playersRef = collection(db, "players");
+      const q = query(playersRef, orderBy("score", "asc"));
+      const querySnapshot = await getDocs(q);
+      const currentPlayers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
+      
+      // Exclude the player being updated from the list before calculating their new rank
+      const otherPlayers = currentPlayers.filter(p => p.id !== player.id);
+      const updatedPlayerPotentialRank = otherPlayers.filter(p => p.score < scoreInSeconds).length;
+
+      if (updatedPlayerPotentialRank < 3) {
+        // Player is entering top 3
+        if (updatedPlayerPotentialRank === 0) { // Entering 1st place
+          if (currentPlayers.length > 0) await sendDethroneMessage(currentPlayers[0]);
+          if (currentPlayers.length > 1) await sendDethroneMessage(currentPlayers[1]);
+          if (currentPlayers.length > 2) await sendDethroneMessage(currentPlayers[2]);
+        } else if (updatedPlayerPotentialRank === 1) { // Entering 2nd place
+          if (currentPlayers.length > 1) await sendDethroneMessage(currentPlayers[1]);
+          if (currentPlayers.length > 2) await sendDethroneMessage(currentPlayers[2]);
+        } else if (updatedPlayerPotentialRank === 2) { // Entering 3rd place
+          if (currentPlayers.length > 2) await sendDethroneMessage(currentPlayers[2]);
+        }
+      }
+      // --- End of proactive notification logic for updates ---
+
 
       await updateDoc(playerRef, {
         score: scoreInSeconds,
