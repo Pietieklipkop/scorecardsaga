@@ -59,7 +59,9 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
   const sendDethroneMessage = async (dethronedPlayer: Player) => {
     const message = `⚡ *Fairtree leaderboard update*
 
-You’ve been challenged and knocked off your spot! 💥 True *excellence* isn’t found at the finish line; it’s in coming back stronger. Join us back at the booth and reclaim your place on the leaderboard.
+You’ve been challenged and knocked off your spot! 💥 True *excellence* isn’t found at the finish line; it’s in coming back stronger. 
+
+*Join us back at the booth and reclaim your place on the leaderboard.*
 
 _Fairtree. Values-driven Investing._`;
     try {
