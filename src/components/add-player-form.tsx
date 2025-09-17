@@ -53,6 +53,8 @@ _Fairtree. Values-driven Investing._`;
     try {
       await addDoc(collection(db, "whatsapp_messaging"), {
         phone: player.phone,
+        name: player.name,
+        surname: player.surname,
         message: message,
         timestamp: new Date(),
         sent: false,

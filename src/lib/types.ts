@@ -42,6 +42,8 @@ export type Player = z.infer<typeof playerSchema>;
 export interface WhatsappMessage {
     id: string;
     phone: string;
+    name: string;
+    surname: string;
     message: string;
     timestamp: Date;
     sent: boolean;

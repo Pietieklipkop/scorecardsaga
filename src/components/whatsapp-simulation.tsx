@@ -21,18 +21,18 @@ interface WhatsappSimulationProps {
 export function WhatsappSimulation({ messages }: WhatsappSimulationProps) {
   const { toast } = useToast();
 
-  const handleCopy = (phone: string) => {
-    navigator.clipboard.writeText(phone).then(() => {
+  const handleCopy = (textToCopy: string, successMessage: string) => {
+    navigator.clipboard.writeText(textToCopy).then(() => {
       toast({
         title: "Copied to clipboard",
-        description: `Phone number ${phone} has been copied.`,
+        description: successMessage,
       });
     }).catch(err => {
       console.error('Failed to copy text: ', err);
       toast({
         variant: "destructive",
         title: "Copy Failed",
-        description: "Could not copy number to clipboard.",
+        description: "Could not copy to clipboard.",
       });
     });
   };
@@ -83,9 +83,9 @@ export function WhatsappSimulation({ messages }: WhatsappSimulationProps) {
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
                             <span className="text-sm font-semibold text-foreground">
-                                To: {msg.phone}
+                                To: {msg.name} {msg.surname} ({msg.phone})
                             </span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(msg.phone)}>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(msg.phone, `Phone number ${msg.phone} copied.`)}>
                                 <Copy className="h-4 w-4 text-muted-foreground" />
                                 <span className="sr-only">Copy phone number</span>
                             </Button>
@@ -94,7 +94,13 @@ export function WhatsappSimulation({ messages }: WhatsappSimulationProps) {
                             {formatDistanceToNow(new Date(msg.timestamp), { addSuffix: true })}
                         </p>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">{msg.message}</p>
+                    <div className="flex items-start gap-2 mt-1">
+                      <p className="text-sm text-muted-foreground flex-1">{msg.message}</p>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => handleCopy(msg.message, 'Message content copied.')}>
+                          <Copy className="h-4 w-4 text-muted-foreground" />
+                          <span className="sr-only">Copy message</span>
+                      </Button>
+                    </div>
                   </div>
                   <div className="flex flex-col items-center justify-center h-full pl-2">
                     <Checkbox
