@@ -57,7 +57,11 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
   });
 
   const sendDethroneMessage = async (dethronedPlayer: Player) => {
-    const message = `Hi ${dethronedPlayer.name}, you've moved down on the Scoreboard Saga leaderboard. Keep pushing to reclaim your spot!`;
+    const message = `⚡ *Fairtree leaderboard update*
+
+You’ve been challenged and knocked off your spot! 💥 True *excellence* isn’t found at the finish line; it’s in coming back stronger. Join us back at the booth and reclaim your place on the leaderboard.
+
+_Fairtree. Values-driven Investing._`;
     try {
       await addDoc(collection(db, "whatsapp_messaging"), {
         phone: dethronedPlayer.phone,
