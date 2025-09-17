@@ -177,25 +177,6 @@ export default function Home() {
   
     const oldTop3 = oldPlayers.slice(0, 3);
     const newTop3 = newPlayers.slice(0, 3);
-    const newTop3Ids = newTop3.map(p => p.id);
-
-    const addedPlayer = newPlayers.find(p => !oldPlayers.some(op => op.id === p.id));
-    const updatedPlayer = newPlayers.find(np => {
-      const op = oldPlayers.find(op => op.id === np.id);
-      return op && op.score !== np.score;
-    });
-
-    const changedPlayer = addedPlayer || updatedPlayer;
-
-    if(changedPlayer){
-        const rank = newPlayers.findIndex(p => p.id === changedPlayer.id) + 1;
-        if (rank <= 3) {
-          sendWhatsappMessage(changedPlayer, "comp_success");
-        } else if (addedPlayer){
-          // This is where a new player is added but not in top 3
-          // We don't send a failure message anymore based on requirements.
-        }
-    }
 
     // Check which players from old top 3 were displaced
     oldTop3.forEach((oldTopPlayer, oldIndex) => {
