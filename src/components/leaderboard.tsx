@@ -32,7 +32,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer, onPlayerCl
         <div className="flex-1 text-left font-raleway font-bold">Player</div>
         <div className="flex-1 text-left font-raleway font-bold">Company</div>
         <div className="flex-none w-[4.5rem] text-center font-raleway font-bold">Score</div>
-        {isAdminView && <div className="flex-none w-20 text-center font-raleway font-bold">Retries</div>}
+        {isAdminView && <div className="flex-none w-20 text-center font-raleway font-bold">Tries</div>}
         {isAdminView && <div className="flex-none w-48 text-center">Actions</div>}
       </div>
       
@@ -67,7 +67,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer, onPlayerCl
                       </div>
                       {isAdminView && (
                           <div className="flex-none w-20 flex justify-center">
-                              <span className="font-mono text-lg font-bold">{player.retries ?? 0}</span>
+                              <span className="font-mono text-lg font-bold">{player.retries ?? 1}</span>
                           </div>
                       )}
                       {isAdminView && (

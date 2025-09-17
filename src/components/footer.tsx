@@ -12,13 +12,14 @@ interface FooterProps {
 export function Footer({ players }: FooterProps) {
 
   const exportToCSV = () => {
-    const headers = ["Name", "Surname", "Email", "Phone", "Score"];
+    const headers = ["Name", "Surname", "Email", "Phone", "Score", "Tries"];
     const rows = players.map((player) => [
       player.name,
       player.surname,
       player.email,
       player.phone,
       player.score,
+      player.retries ?? 1,
     ]);
 
     let csvContent = "data:text/csv;charset=utf-8," 
@@ -38,12 +39,31 @@ export function Footer({ players }: FooterProps) {
     window.open("/scoreboard", "_blank");
   };
 
+  const getMostTriedPlayer = () => {
+    if (players.length === 0) {
+      return null;
+    }
+    return players.reduce((maxPlayer, currentPlayer) => {
+      const currentTries = currentPlayer.retries ?? 0;
+      const maxTries = maxPlayer.retries ?? 0;
+      return currentTries > maxTries ? currentPlayer : maxPlayer;
+    }, players[0]);
+  };
+
+  const mostTriedPlayer = getMostTriedPlayer();
+
+
   return (
     <footer className="w-full border-t bg-background">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <p className="text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Scoreboard Saga. All rights reserved.
-        </p>
+        <div className="text-sm text-muted-foreground">
+            <p>&copy; {new Date().getFullYear()} Scoreboard Saga. All rights reserved.</p>
+            {mostTriedPlayer && (
+              <p className="text-xs mt-1">
+                Most Tries: <span className="font-semibold">{mostTriedPlayer.name} {mostTriedPlayer.surname}</span> with {mostTriedPlayer.retries} attempts.
+              </p>
+            )}
+        </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={openScoreboard}>
             <Projector className="mr-2 h-4 w-4" />
