@@ -33,12 +33,12 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
   const formSchema = z.object({
     score: z.string()
       .min(1, "Score is required")
-      .refine(val => /^\d{1,6}$/.test(val), {
-        message: "Score must be up to 6 digits representing MMSSmm.",
+      .refine(val => /^\d{1,4}$/.test(val), {
+        message: "Score must be up to 4 digits representing SSmm.",
       })
       .refine(val => {
-        const paddedVal = val.padStart(6, '0');
-        const seconds = parseInt(paddedVal.substring(2, 4), 10);
+        const paddedVal = val.padStart(4, '0');
+        const seconds = parseInt(paddedVal.substring(0, 2), 10);
         return seconds < 60;
       }, {
         message: "Seconds part (SS) must be between 00 and 59.",
@@ -156,10 +156,10 @@ _Fairtree. Values-driven Investing._`;
             <FormItem>
               <FormLabel>New Score</FormLabel>
               <FormControl>
-                <Input type="text" placeholder="MMSSmm" {...field} />
+                <Input type="text" placeholder="SSmm" {...field} />
               </FormControl>
                <FormDescription>
-                Enter the time as a 6-digit number (e.g., 012345 for 01:23:45).
+                Enter the time as a 4-digit number (e.g., 2345 for 23.45s).
               </FormDescription>
               <FormMessage />
             </FormItem>

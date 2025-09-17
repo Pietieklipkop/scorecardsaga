@@ -3,12 +3,12 @@ import { z } from "zod";
 
 const timeStringSchema = z.string()
   .min(1, "Score is required")
-  .refine(val => /^\d{1,6}$/.test(val), {
-    message: "Score must be up to 6 digits representing MMSSmm.",
+  .refine(val => /^\d{1,4}$/.test(val), {
+    message: "Score must be up to 4 digits representing SSmm.",
   })
   .refine(val => {
-    const paddedVal = val.padStart(6, '0');
-    const seconds = parseInt(paddedVal.substring(2, 4), 10);
+    const paddedVal = val.padStart(4, '0');
+    const seconds = parseInt(paddedVal.substring(0, 2), 10);
     return seconds < 60;
   }, {
     message: "Seconds part (SS) must be between 00 and 59.",
@@ -29,7 +29,7 @@ export const playerSchema = z.object({
   termsAccepted: z.boolean().refine((val) => val === true, {
     message: "You must accept the terms and conditions.",
   }),
-  attempts: z.coerce.number().int().min(0).optional().nullable(),
+  attempts: z.coerce.number().int().min(1).optional().nullable(),
 });
 
 export const addPlayerFormSchema = playerSchema.omit({ score: true, attempts: true }).extend({

@@ -213,10 +213,10 @@ _Fairtree. Values-driven Investing._`;
             <FormItem>
               <FormLabel>Score</FormLabel>
               <FormControl>
-                <Input type="text" placeholder="MMSSmm" {...field} />
+                <Input type="text" placeholder="SSmm" {...field} />
               </FormControl>
               <FormDescription>
-                Enter the time as a 6-digit number (e.g., 012345 for 01:23:45).
+                Enter the time as a 4-digit number (e.g., 2345 for 23.45s).
               </FormDescription>
               <FormMessage />
             </FormItem>
