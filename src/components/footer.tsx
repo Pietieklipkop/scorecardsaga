@@ -19,7 +19,7 @@ export function Footer({ players }: FooterProps) {
       player.email,
       player.phone,
       player.score,
-      player.retries ?? 1,
+      player.attempts ?? 1,
     ]);
 
     let csvContent = "data:text/csv;charset=utf-8," 
@@ -44,8 +44,8 @@ export function Footer({ players }: FooterProps) {
       return null;
     }
     return players.reduce((maxPlayer, currentPlayer) => {
-      const currentTries = currentPlayer.retries ?? 0;
-      const maxTries = maxPlayer.retries ?? 0;
+      const currentTries = currentPlayer.attempts ?? 0;
+      const maxTries = maxPlayer.attempts ?? 0;
       return currentTries > maxTries ? currentPlayer : maxPlayer;
     }, players[0]);
   };
@@ -60,7 +60,7 @@ export function Footer({ players }: FooterProps) {
             <p>&copy; {new Date().getFullYear()} Scoreboard Saga. All rights reserved.</p>
             {mostAttemptedPlayer && (
               <p className="text-xs mt-1">
-                Most Attempts: <span className="font-semibold">{mostAttemptedPlayer.name} {mostAttemptedPlayer.surname}</span> with {mostAttemptedPlayer.retries} attempts.
+                Most Attempts: <span className="font-semibold">{mostAttemptedPlayer.name} {mostAttemptedPlayer.surname}</span> with {mostAttemptedPlayer.attempts} attempts.
               </p>
             )}
         </div>

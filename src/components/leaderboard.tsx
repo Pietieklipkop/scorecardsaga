@@ -31,7 +31,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer, onPlayerCl
         <div className="flex-none w-20 text-left font-raleway font-bold">Rank</div>
         <div className="flex-1 text-left font-raleway font-bold">Player</div>
         <div className="flex-1 text-left font-raleway font-bold">Company</div>
-        <div className="flex-none w-[4.5rem] text-center font-raleway font-bold">Score</div>
+        <div className="flex-none w-[7rem] text-center font-raleway font-bold">Score</div>
         {isAdminView && <div className="flex-none w-20 text-center font-raleway font-bold">Attempts</div>}
         {isAdminView && <div className="flex-none w-48 text-center">Actions</div>}
       </div>
@@ -60,14 +60,14 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer, onPlayerCl
                               <div className="text-sm text-white/50">N/A</div>
                           )}
                       </div>
-                      <div className="flex-none w-[4.5rem] flex justify-center">
+                      <div className="flex-none w-[7rem] flex justify-center">
                           <Badge variant="outline" className="text-lg font-bold border-2 border-primary/50 text-white bg-primary/20 font-mono tabular-nums">
                               {formatScore(player.score)}
                           </Badge>
                       </div>
                       {isAdminView && (
                           <div className="flex-none w-20 flex justify-center">
-                              <span className="font-mono text-lg font-bold">{player.retries ?? 1}</span>
+                              <span className="font-mono text-lg font-bold">{player.attempts ?? 1}</span>
                           </div>
                       )}
                       {isAdminView && (

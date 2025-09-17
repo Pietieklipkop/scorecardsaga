@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { timeStringToSeconds, formatScore } from "@/lib/utils";
+import { timeStringToHundredths, formatScore } from "@/lib/utils";
 
 interface UpdateScoreFormProps {
   player: Player;
@@ -33,18 +33,18 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
   const formSchema = z.object({
     score: z.string()
       .min(1, "Score is required")
-      .refine(val => /^\d{1,4}$/.test(val), {
-        message: "Score must be up to 4 digits representing MMSS.",
+      .refine(val => /^\d{1,6}$/.test(val), {
+        message: "Score must be up to 6 digits representing MMSSmm.",
       })
       .refine(val => {
-        const paddedVal = val.padStart(4, '0');
+        const paddedVal = val.padStart(6, '0');
         const seconds = parseInt(paddedVal.substring(2, 4), 10);
         return seconds < 60;
       }, {
         message: "Seconds part (SS) must be between 00 and 59.",
       })
       .refine(val => {
-          const newScore = timeStringToSeconds(val);
+          const newScore = timeStringToHundredths(val);
           return newScore < player.score;
       }, `Score must be lower than the current score of ${formatScore(player.score)}.`)
   });
@@ -91,7 +91,7 @@ _Fairtree. Values-driven Investing._`;
     
     try {
       const playerRef = doc(db, "players", player.id);
-      const newScoreInSeconds = timeStringToSeconds(data.score);
+      const newScoreInHundredths = timeStringToHundredths(data.score);
 
       // --- Start of proactive notification logic for updates ---
       const playersRef = collection(db, "players");
@@ -101,7 +101,7 @@ _Fairtree. Values-driven Investing._`;
 
       // Create a hypothetical future leaderboard
       const futurePlayers = originalPlayers
-        .map(p => (p.id === player.id ? { ...p, score: newScoreInSeconds } : p))
+        .map(p => (p.id === player.id ? { ...p, score: newScoreInHundredths } : p))
         .sort((a, b) => a.score - b.score);
 
       const originalTop3 = originalPlayers.slice(0, 3);
@@ -126,13 +126,13 @@ _Fairtree. Values-driven Investing._`;
       // --- End of proactive notification logic for updates ---
 
       await updateDoc(playerRef, {
-        score: newScoreInSeconds,
-        retries: (player.retries || 0) + 1,
+        score: newScoreInHundredths,
+        attempts: (player.attempts || 0) + 1,
       });
 
       toast({
         title: "Score Updated",
-        description: `${player.name} ${player.surname}'s score has been updated to ${formatScore(newScoreInSeconds)}.`,
+        description: `${player.name} ${player.surname}'s score has been updated to ${formatScore(newScoreInHundredths)}.`,
       });
       form.reset();
       onFormSubmitted();
@@ -156,10 +156,10 @@ _Fairtree. Values-driven Investing._`;
             <FormItem>
               <FormLabel>New Score</FormLabel>
               <FormControl>
-                <Input type="text" placeholder="MMSS" {...field} />
+                <Input type="text" placeholder="MMSSmm" {...field} />
               </FormControl>
                <FormDescription>
-                Enter the time as a 4-digit number (e.g., 0827 for 08:27).
+                Enter the time as a 6-digit number (e.g., 012345 for 01:23:45).
               </FormDescription>
               <FormMessage />
             </FormItem>

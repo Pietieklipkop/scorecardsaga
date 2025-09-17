@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "./ui/checkbox";
 import Link from "next/link";
-import { timeStringToSeconds } from "@/lib/utils";
+import { timeStringToHundredths } from "@/lib/utils";
 
 
 interface AddPlayerFormProps {
@@ -70,12 +70,12 @@ _Fairtree. Values-driven Investing._`;
   async function onSubmit(data: AddPlayerFormData) {
     try {
       const { termsAccepted, ...playerData } = data;
-      const scoreInSeconds = timeStringToSeconds(data.score);
+      const scoreInHundredths = timeStringToHundredths(data.score);
 
       const finalPlayerData: Omit<Player, 'id' | 'termsAccepted'> = {
         ...playerData,
-        score: scoreInSeconds,
-        retries: 1,
+        score: scoreInHundredths,
+        attempts: 1,
       };
 
       // --- Start of new proactive notification logic ---
@@ -84,7 +84,7 @@ _Fairtree. Values-driven Investing._`;
       const querySnapshot = await getDocs(q);
       const currentPlayers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
 
-      const newPlayerPotentialRank = currentPlayers.filter(p => p.score < scoreInSeconds).length;
+      const newPlayerPotentialRank = currentPlayers.filter(p => p.score < scoreInHundredths).length;
 
       if (newPlayerPotentialRank < 3) {
         const playersToNotify = currentPlayers.slice(newPlayerPotentialRank, 3);
@@ -213,10 +213,10 @@ _Fairtree. Values-driven Investing._`;
             <FormItem>
               <FormLabel>Score</FormLabel>
               <FormControl>
-                <Input type="text" placeholder="MMSS" {...field} />
+                <Input type="text" placeholder="MMSSmm" {...field} />
               </FormControl>
               <FormDescription>
-                Enter the time as a 4-digit number (e.g., 1827 for 18:27).
+                Enter the time as a 6-digit number (e.g., 012345 for 01:23:45).
               </FormDescription>
               <FormMessage />
             </FormItem>
