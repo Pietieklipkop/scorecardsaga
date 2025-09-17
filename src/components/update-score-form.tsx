@@ -82,39 +82,42 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
     
     try {
       const playerRef = doc(db, "players", player.id);
-      const scoreInSeconds = timeStringToSeconds(data.score);
+      const newScoreInSeconds = timeStringToSeconds(data.score);
 
       // --- Start of proactive notification logic for updates ---
       const playersRef = collection(db, "players");
       const q = query(playersRef, orderBy("score", "asc"));
       const querySnapshot = await getDocs(q);
-      const currentPlayers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
-      
-      const otherPlayers = currentPlayers.filter(p => p.id !== player.id);
-      const updatedPlayerPotentialRank = otherPlayers.filter(p => p.score < scoreInSeconds).length;
+      const originalPlayers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
 
-      if (updatedPlayerPotentialRank < 3) {
-        if (updatedPlayerPotentialRank === 0) { // Entering 1st place
-          if (currentPlayers.length > 0 && currentPlayers[0].id !== player.id) await sendDethroneMessage(currentPlayers[0]);
-          if (currentPlayers.length > 1 && currentPlayers[1].id !== player.id) await sendDethroneMessage(currentPlayers[1]);
-          if (currentPlayers.length > 2 && currentPlayers[2].id !== player.id) await sendDethroneMessage(currentPlayers[2]);
-        } else if (updatedPlayerPotentialRank === 1) { // Entering 2nd place
-          if (currentPlayers.length > 1 && currentPlayers[1].id !== player.id) await sendDethroneMessage(currentPlayers[1]);
-          if (currentPlayers.length > 2 && currentPlayers[2].id !== player.id) await sendDethroneMessage(currentPlayers[2]);
-        } else if (updatedPlayerPotentialRank === 2) { // Entering 3rd place
-          if (currentPlayers.length > 2 && currentPlayers[2].id !== player.id) await sendDethroneMessage(currentPlayers[2]);
+      // Create a hypothetical future leaderboard
+      const futurePlayers = originalPlayers
+        .map(p => (p.id === player.id ? { ...p, score: newScoreInSeconds } : p))
+        .sort((a, b) => a.score - b.score);
+
+      const originalTop3 = originalPlayers.slice(0, 3);
+
+      for (let i = 0; i < originalTop3.length; i++) {
+        const originalPlayer = originalTop3[i];
+        const originalRank = i;
+
+        // Find this player's new rank in the future
+        const newRank = futurePlayers.findIndex(p => p.id === originalPlayer.id);
+        
+        // If the player moved down and is not the player being updated
+        if (newRank > originalRank && originalPlayer.id !== player.id) {
+          await sendDethroneMessage(originalPlayer);
         }
       }
       // --- End of proactive notification logic for updates ---
 
-
       await updateDoc(playerRef, {
-        score: scoreInSeconds,
+        score: newScoreInSeconds,
       });
 
       toast({
         title: "Score Updated",
-        description: `${player.name} ${player.surname}'s score has been updated to ${formatScore(scoreInSeconds)}.`,
+        description: `${player.name} ${player.surname}'s score has been updated to ${formatScore(newScoreInSeconds)}.`,
       });
       form.reset();
       onFormSubmitted();
