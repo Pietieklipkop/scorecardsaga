@@ -77,7 +77,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer, onPlayerCl
                                   Update
                               </Button>
                               {onDeletePlayer && (
-                                <Button variant="destructive" size="icon" onClick={(e) => { e.stopPropagation(); onDeletePlayer(player); }}>
+                                <Button variant="destructive" size="sm" onClick={(e) => { e.stopPropagation(); onDeletePlayer(player); }}>
                                     <Trash2 className="h-4 w-4" />
                                     <span className="sr-only">Delete</span>
                                 </Button>
