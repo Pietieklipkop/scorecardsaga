@@ -85,10 +85,16 @@ export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPla
         const logsData: ActivityLogEntryData[] = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
+            // Firestore Timestamps have a `toDate` method, but JS Dates do not.
+            // This handles both cases.
+            const timestamp = data.timestamp && typeof data.timestamp.toDate === 'function' 
+                ? data.timestamp.toDate() 
+                : data.timestamp;
+            
             logsData.push({ 
                 id: doc.id, 
                 ...data,
-                timestamp: data.timestamp?.toDate() // Convert Firestore Timestamp to Date
+                timestamp: timestamp
             } as ActivityLogEntryData);
         });
         setLogs(logsData);
@@ -198,7 +204,7 @@ export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPla
                                 )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                                {formatDistanceToNow(log.timestamp, { addSuffix: true })}
+                                {log.timestamp ? formatDistanceToNow(log.timestamp, { addSuffix: true }) : 'a few moments ago'}
                             </p>
                         </div>
                     </div>
