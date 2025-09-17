@@ -30,7 +30,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer, onPlayerCl
        <div className="flex items-center px-4 h-12 text-white border border-[#87B7EE] bg-[#223B4D] rounded-[3px] mb-[5px]">
         <div className="flex-none w-20 text-left font-raleway font-bold">Rank</div>
         <div className="flex-1 text-left font-raleway font-bold">Player</div>
-        <div className="flex-1 text-left font-raleway font-bold">Company</div>
+        <div className="flex-1 text-left font-raleway font-bold hidden md:block">Company</div>
         <div className="flex-none w-[7rem] text-center font-raleway font-bold">Score</div>
         {isAdminView && <div className="flex-none w-20 text-center font-raleway font-bold">Attempts</div>}
         {isAdminView && <div className="flex-none w-48 text-center">Actions</div>}
@@ -53,7 +53,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer, onPlayerCl
                       <div className="flex-1 flex items-center font-raleway text-left">
                           <div>{player.name} {player.surname}</div>
                       </div>
-                      <div className="flex-1 font-raleway text-left">
+                      <div className="flex-1 font-raleway text-left hidden md:block">
                           {player.company ? (
                               <div className="text-sm">{player.company}</div>
                           ) : (
