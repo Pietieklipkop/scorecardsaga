@@ -3,7 +3,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { collection, addDoc } from "firebase/firestore"; 
+import { collection, addDoc, query, getDocs, orderBy } from "firebase/firestore"; 
 import { db } from "@/lib/firebase";
 
 import type { Player } from "@/lib/types";
@@ -44,6 +44,20 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
     },
   });
 
+  const sendDethroneMessage = async (player: Player) => {
+    const message = `Hi ${player.name}, you've moved down on the Scoreboard Saga leaderboard. Keep pushing to reclaim your spot!`;
+    try {
+      await addDoc(collection(db, "whatsapp_messaging"), {
+        phone: player.phone,
+        message: message,
+        timestamp: new Date()
+      });
+    } catch (error) {
+      console.error("Error sending dethrone message:", error);
+    }
+  };
+
+
   async function onSubmit(data: AddPlayerFormData) {
     try {
       const { termsAccepted, ...playerData } = data;
@@ -53,6 +67,30 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
         ...playerData,
         score: scoreInSeconds,
       };
+
+      // --- Start of new proactive notification logic ---
+      const playersRef = collection(db, "players");
+      const q = query(playersRef, orderBy("score", "asc"));
+      const querySnapshot = await getDocs(q);
+      const currentPlayers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
+
+      const newPlayerPotentialRank = currentPlayers.filter(p => p.score < scoreInSeconds).length;
+
+      if (newPlayerPotentialRank < 3) {
+        // Player is entering top 3
+        if (newPlayerPotentialRank === 0) { // Entering 1st place
+          if (currentPlayers.length > 0) await sendDethroneMessage(currentPlayers[0]);
+          if (currentPlayers.length > 1) await sendDethroneMessage(currentPlayers[1]);
+          if (currentPlayers.length > 2) await sendDethroneMessage(currentPlayers[2]);
+        } else if (newPlayerPotentialRank === 1) { // Entering 2nd place
+          if (currentPlayers.length > 1) await sendDethroneMessage(currentPlayers[1]);
+          if (currentPlayers.length > 2) await sendDethroneMessage(currentPlayers[2]);
+        } else if (newPlayerPotentialRank === 2) { // Entering 3rd place
+          if (currentPlayers.length > 2) await sendDethroneMessage(currentPlayers[2]);
+        }
+      }
+      // --- End of new proactive notification logic ---
+
       
       await addDoc(collection(db, "players"), finalPlayerData);
 

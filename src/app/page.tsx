@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { collection, query, onSnapshot, orderBy, deleteDoc, doc, addDoc } from "firebase/firestore";
+import { useState, useEffect } from "react";
+import { collection, query, onSnapshot, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Player, WhatsappMessage } from "@/lib/types";
 import { Leaderboard } from "@/components/leaderboard";
@@ -38,7 +38,6 @@ export default function Home() {
   const { toast } = useToast();
   const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
-  const previousPlayersRef = useRef<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
@@ -104,34 +103,7 @@ export default function Home() {
         querySnapshot.forEach((doc) => {
           playersData.push({ id: doc.id, ...doc.data() } as Player);
         });
-
-        const previousPlayers = previousPlayersRef.current;
-        
-        if (previousPlayers.length > 0) {
-            const oldPlayerRanks = new Map(previousPlayers.map((p, i) => [p.id, i]));
-            const newPlayerRanks = new Map(playersData.map((p, i) => [p.id, i]));
-
-            // Check for players who were in the top 3 and have moved down
-            previousPlayers.slice(0, 3).forEach(async (prevPlayer, oldRank) => {
-                if (!prevPlayer.id) return;
-
-                const newRank = newPlayerRanks.get(prevPlayer.id);
-
-                // If player is no longer on the board or their rank got worse
-                if (newRank === undefined || newRank > oldRank) {
-                    const message = `Hi ${prevPlayer.name}, you've moved down on the Scoreboard Saga leaderboard. Keep pushing to reclaim your spot!`;
-                    await addDoc(collection(db, "whatsapp_messaging"), {
-                        phone: prevPlayer.phone,
-                        message: message,
-                        timestamp: new Date()
-                    });
-                }
-            });
-        }
-
-
         setPlayers(playersData);
-        previousPlayersRef.current = playersData;
         setLoading(false);
       });
 
