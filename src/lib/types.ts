@@ -38,3 +38,9 @@ export type AddPlayerFormData = z.infer<typeof addPlayerFormSchema>;
 
 
 export type Player = z.infer<typeof playerSchema>;
+
+export interface WhatsappMessage {
+    id: string;
+    phone: string;
+    body: string;
+}

@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { collection, query, onSnapshot, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { Player } from "@/lib/types";
+import type { Player, WhatsappMessage } from "@/lib/types";
 import { Leaderboard } from "@/components/leaderboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/header";
@@ -31,7 +31,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { PlayerDetailsModal } from "@/components/player-details-modal";
-
+import { WhatsappSimulation } from "@/components/whatsapp-simulation";
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
@@ -39,15 +39,16 @@ export default function Home() {
   const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
-  
   const [isPlayerDetailsOpen, setIsPlayerDetailsOpen] = useState(false);
   const [playerForDetails, setPlayerForDetails] = useState<Player | null>(null);
+  const [whatsappMessages, setWhatsappMessages] = useState<WhatsappMessage[]>([]);
+  const previousPlayersRef = useRef<Player[]>([]);
+  const isInitialLoad = useRef(true);
+
 
   const handleUpdateScoreClick = (player: Player) => {
     setSelectedPlayer(player);
@@ -57,7 +58,7 @@ export default function Home() {
   const handleUpdateFormSubmitted = () => {
     setIsUpdateDialogOpen(false);
     setSelectedPlayer(null);
-  }
+  };
 
   const handleDeleteClick = (player: Player) => {
     setPlayerToDelete(player);
@@ -106,6 +107,44 @@ export default function Home() {
         });
         
         setPlayers(playersData);
+
+        if (isInitialLoad.current) {
+          isInitialLoad.current = false;
+        } else {
+          const oldPlayers = previousPlayersRef.current;
+          const newPlayers = playersData;
+
+          const oldPlayerMap = new Map(oldPlayers.map((p, i) => [p.id, { ...p, rank: i + 1 }]));
+          const newPlayerMap = new Map(newPlayers.map((p, i) => [p.id, { ...p, rank: i + 1 }]));
+
+          const newMessages: WhatsappMessage[] = [];
+
+          // Check for dethronements from top 3
+          const oldTop3 = oldPlayers.slice(0, 3);
+
+          oldTop3.forEach((oldPlayer, oldRankIndex) => {
+            const oldRank = oldRankIndex + 1;
+            const newPlayerData = newPlayerMap.get(oldPlayer.id);
+
+            if (newPlayerData && newPlayerData.rank > oldRank) {
+              const newRank = newPlayerData.rank;
+               // Find who took their spot
+              const dethroner = newPlayers[oldRankIndex];
+              const message = {
+                id: `${Date.now()}-${oldPlayer.id}`,
+                phone: oldPlayer.phone,
+                body: `You've been knocked from position ${oldRank} to ${newRank} by ${dethroner?.name ?? 'a new player'}. Your new score to beat is ${dethroner ? dethroner.score : 'N/A'}.`
+              };
+              newMessages.push(message);
+            }
+          });
+          
+          if(newMessages.length > 0) {
+            setWhatsappMessages(prev => [...newMessages, ...prev]);
+          }
+
+        }
+        previousPlayersRef.current = playersData;
         setLoading(false);
       });
 
@@ -148,6 +187,9 @@ export default function Home() {
                 onPlayerClick={handlePlayerClick}
               />
             )}
+          </div>
+          <div className="w-full">
+            <WhatsappSimulation messages={whatsappMessages} />
           </div>
         </div>
       </main>
