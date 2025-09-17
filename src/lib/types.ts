@@ -86,7 +86,7 @@ const addLogDataSchema = z.object({
 
 const dethroneLogDataSchema = z.object({
   type: z.literal("dethrone"),
-  newPlayer: activityLogPlayerSchema,
+  newPlayer: activityLogPlayerSchema.nullable(),
   oldPlayer: activityLogPlayerSchema,
   rank: z.number(),
 });
@@ -128,3 +128,4 @@ export const whatsappLogSchema = z.object({
 });
 
 export type WhatsappLog = z.infer<typeof whatsappLogSchema>;
+

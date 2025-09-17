@@ -158,56 +158,47 @@ export default function Home() {
   
     const oldPlayers = prevPlayersRef.current;
     const newPlayers = players;
-
-    // Do nothing if there's no change in players
-    if (JSON.stringify(oldPlayers) === JSON.stringify(newPlayers)) {
-        prevPlayersRef.current = newPlayers;
-        return;
-    }
   
-    const createPlayerLogObject = (player: Player) => ({
-      id: player.id!,
-      name: player.name,
-      surname: player.surname,
-      email: player.email,
-      phone: player.phone,
-      score: player.score,
-      company: player.company || null,
-    });
+    // Efficiently create maps of player IDs to their ranks (index + 1)
+    const oldRanks = new Map(oldPlayers.map((p, i) => [p.id, i + 1]));
+    const newRanks = new Map(newPlayers.map((p, i) => [p.id, i + 1]));
   
-    const oldTop3 = oldPlayers.slice(0, 3);
-    const newTop3 = newPlayers.slice(0, 3);
+    // 1. Identify players who were in the top 3 before
+    const oldTop3Players = oldPlayers.slice(0, 3);
+  
+    oldTop3Players.forEach(oldPlayer => {
+      if (!oldPlayer.id) return;
+  
+      const oldRank = oldRanks.get(oldPlayer.id);
+      const newRank = newRanks.get(oldPlayer.id);
+  
+      // If the player is no longer on the board or their rank is now worse than 3rd
+      if (oldRank && oldRank <= 3 && (!newRank || newRank > 3)) {
 
-    // Check which players from old top 3 were displaced
-    oldTop3.forEach((oldTopPlayer, oldIndex) => {
-      const newIndex = newPlayers.findIndex(p => p.id === oldTopPlayer.id);
-
-      // If the player is no longer in top 3, or their rank has changed within top 3
-      if (newIndex === -1 || newIndex > oldIndex) {
-            // Only send dethrone message if they are pushed down or out of top 3
-            if(newIndex === -1 || newIndex > 2) {
-                sendWhatsappMessage(oldTopPlayer, "comp_dethrone");
-            }
-
-            const dethroningPlayer = newTop3[oldIndex];
-            // Log only if someone was actually dethroned from a top 3 spot
-            if (dethroningPlayer && oldTopPlayer.id !== dethroningPlayer.id) {
-               const newLogData: Omit<ActivityLogEntryData, 'timestamp' | 'id'> = {
-                   type: "dethrone",
-                   newPlayer: createPlayerLogObject(dethroningPlayer),
-                   oldPlayer: createPlayerLogObject(oldTopPlayer),
-                   rank: oldIndex + 1,
-               };
-               addDoc(collection(db, "activity_logs"), {
-                   ...newLogData,
-                   timestamp: serverTimestamp(),
-               });
-            }
+        const dethroningPlayerId = newPlayers[oldRank -1]?.id;
+        const dethroningPlayer = newPlayers.find(p => p.id === dethroningPlayerId) ?? null;
+  
+        // Log the dethronement
+        const newLogData: Omit<ActivityLogEntryData, 'timestamp' | 'id'> = {
+          type: "dethrone",
+          // The dethroning player is whoever took their spot
+          newPlayer: dethroningPlayer ? { ...dethroningPlayer, termsAccepted: false } : null,
+          oldPlayer: { ...oldPlayer, termsAccepted: false },
+          rank: oldRank,
+        };
+        addDoc(collection(db, "activity_logs"), {
+          ...newLogData,
+          timestamp: serverTimestamp(),
+        });
+  
+        // Send a WhatsApp message to the dethroned player
+        sendWhatsappMessage(oldPlayer, "comp_dethrone");
       }
     });
   
     prevPlayersRef.current = newPlayers;
   }, [players, isInitialLoad, user]);
+  
 
   if (authLoading || !user) {
     return (
@@ -291,3 +282,4 @@ export default function Home() {
     </>
   );
 }
+

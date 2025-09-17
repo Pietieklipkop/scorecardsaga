@@ -67,7 +67,7 @@ const WhatsappIcon = () => (
 );
 
 
-export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPlayer: Player, newPlayer: Player) => void }) {
+export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPlayer: Player, newPlayer: Player | null) => void }) {
   const { user, loading: authLoading } = useAuth();
   const [logs, setLogs] = useState<ActivityLogEntryData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,7 +148,7 @@ export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPla
                                         {" "}was added to the leaderboard.
                                     </>
                                     )}
-                                    {log.type === 'dethrone' && (
+                                    {log.type === 'dethrone' && log.newPlayer && (
                                     <>
                                         <PlayerTooltip player={log.newPlayer}>
                                             <span className="font-semibold text-foreground hover:underline cursor-pointer">
@@ -156,6 +156,17 @@ export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPla
                                             </span>
                                         </PlayerTooltip>
                                         {" "}dethroned{" "}
+                                        <PlayerTooltip player={log.oldPlayer}>
+                                            <span className="font-semibold text-foreground hover:underline cursor-pointer">
+                                                {log.oldPlayer.name} {log.oldPlayer.surname}
+                                            </span>
+                                        </PlayerTooltip>
+                                        {" "}from {getRankString(log.rank)}.
+                                    </>
+                                    )}
+                                     {log.type === 'dethrone' && !log.newPlayer && (
+                                    <>
+                                        A new player dethroned{" "}
                                         <PlayerTooltip player={log.oldPlayer}>
                                             <span className="font-semibold text-foreground hover:underline cursor-pointer">
                                                 {log.oldPlayer.name} {log.oldPlayer.surname}
@@ -220,3 +231,4 @@ export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPla
     </Card>
   );
 }
+
