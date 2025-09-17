@@ -4,7 +4,7 @@
 import type { WhatsappMessage } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, Copy } from 'lucide-react';
+import { Bot, Copy, Mail, Phone, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -79,28 +79,39 @@ export function WhatsappSimulation({ messages }: WhatsappSimulationProps) {
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 shrink-0 mt-1">
                     <Bot className="h-5 w-5 text-green-600" />
                   </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-foreground">
-                                To: {msg.name} {msg.surname} ({msg.phone})
-                            </span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(msg.phone, `Phone number ${msg.phone} copied.`)}>
-                                <Copy className="h-4 w-4 text-muted-foreground" />
-                                <span className="sr-only">Copy phone number</span>
-                            </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(msg.timestamp), { addSuffix: true })}
-                        </p>
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-semibold text-foreground">
+                            To: {msg.name} {msg.surname}
+                        </span>
                     </div>
-                    <div className="flex items-start gap-2 mt-1">
-                      <p className="text-sm text-muted-foreground flex-1">{msg.message}</p>
+                     <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-semibold text-foreground">
+                            {msg.phone}
+                        </span>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(msg.phone, `Phone number ${msg.phone} copied.`)}>
+                            <Copy className="h-4 w-4 text-muted-foreground" />
+                            <span className="sr-only">Copy phone number</span>
+                        </Button>
+                    </div>
+                    
+                    <div className="flex items-start gap-2 pt-1">
+                      <p className="text-sm text-muted-foreground flex-1 whitespace-pre-wrap">{msg.message}</p>
                       <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => handleCopy(msg.message, 'Message content copied.')}>
                           <Copy className="h-4 w-4 text-muted-foreground" />
                           <span className="sr-only">Copy message</span>
                       </Button>
                     </div>
+
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
+                        <Clock className="h-4 w-4" />
+                        <span>
+                            Queued: {formatDistanceToNow(new Date(msg.timestamp), { addSuffix: true })}
+                        </span>
+                    </div>
+
                   </div>
                   <div className="flex flex-col items-center justify-center h-full pl-2">
                     <Checkbox
