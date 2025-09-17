@@ -32,7 +32,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { PlayerDetailsModal } from "@/components/player-details-modal";
 import { WhatsappSimulation } from "@/components/whatsapp-simulation";
-import { diff } from 'deep-object-diff';
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
@@ -108,15 +107,18 @@ export default function Home() {
 
         const previousPlayers = previousPlayersRef.current;
         
-        // Only run change detection if there are previous players to compare against
-        if (previousPlayers.length > 0 && Object.keys(diff(previousPlayers, playersData)).length > 0) {
-            const previousTop3 = previousPlayers.slice(0, 3);
-            const currentTop3 = playersData.slice(0, 3);
+        if (previousPlayers.length > 0) {
+            const oldPlayerRanks = new Map(previousPlayers.map((p, i) => [p.id, i]));
+            const newPlayerRanks = new Map(playersData.map((p, i) => [p.id, i]));
 
-            previousTop3.forEach(async (prevPlayer, index) => {
-                const newRank = playersData.findIndex(p => p.id === prevPlayer.id);
-                // If player was in top 3 and now is not, or their rank got worse
-                if (newRank === -1 || newRank > index) {
+            // Check for players who were in the top 3 and have moved down
+            previousPlayers.slice(0, 3).forEach(async (prevPlayer, oldRank) => {
+                if (!prevPlayer.id) return;
+
+                const newRank = newPlayerRanks.get(prevPlayer.id);
+
+                // If player is no longer on the board or their rank got worse
+                if (newRank === undefined || newRank > oldRank) {
                     const message = `Hi ${prevPlayer.name}, you've moved down on the Scoreboard Saga leaderboard. Keep pushing to reclaim your spot!`;
                     await addDoc(collection(db, "whatsapp_messaging"), {
                         phone: prevPlayer.phone,
@@ -126,6 +128,7 @@ export default function Home() {
                 }
             });
         }
+
 
         setPlayers(playersData);
         previousPlayersRef.current = playersData;
