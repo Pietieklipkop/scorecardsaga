@@ -12,7 +12,7 @@ interface FooterProps {
 export function Footer({ players }: FooterProps) {
 
   const exportToCSV = () => {
-    const headers = ["Name", "Surname", "Email", "Phone", "Score", "Tries"];
+    const headers = ["Name", "Surname", "Email", "Phone", "Score", "Attempts"];
     const rows = players.map((player) => [
       player.name,
       player.surname,
@@ -39,7 +39,7 @@ export function Footer({ players }: FooterProps) {
     window.open("/scoreboard", "_blank");
   };
 
-  const getMostTriedPlayer = () => {
+  const getMostAttemptedPlayer = () => {
     if (players.length === 0) {
       return null;
     }
@@ -50,7 +50,7 @@ export function Footer({ players }: FooterProps) {
     }, players[0]);
   };
 
-  const mostTriedPlayer = getMostTriedPlayer();
+  const mostAttemptedPlayer = getMostAttemptedPlayer();
 
 
   return (
@@ -58,9 +58,9 @@ export function Footer({ players }: FooterProps) {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="text-sm text-muted-foreground">
             <p>&copy; {new Date().getFullYear()} Scoreboard Saga. All rights reserved.</p>
-            {mostTriedPlayer && (
+            {mostAttemptedPlayer && (
               <p className="text-xs mt-1">
-                Most Tries: <span className="font-semibold">{mostTriedPlayer.name} {mostTriedPlayer.surname}</span> with {mostTriedPlayer.retries} attempts.
+                Most Attempts: <span className="font-semibold">{mostAttemptedPlayer.name} {mostAttemptedPlayer.surname}</span> with {mostAttemptedPlayer.retries} attempts.
               </p>
             )}
         </div>

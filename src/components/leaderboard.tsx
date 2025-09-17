@@ -32,7 +32,7 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer, onPlayerCl
         <div className="flex-1 text-left font-raleway font-bold">Player</div>
         <div className="flex-1 text-left font-raleway font-bold">Company</div>
         <div className="flex-none w-[4.5rem] text-center font-raleway font-bold">Score</div>
-        {isAdminView && <div className="flex-none w-20 text-center font-raleway font-bold">Tries</div>}
+        {isAdminView && <div className="flex-none w-20 text-center font-raleway font-bold">Attempts</div>}
         {isAdminView && <div className="flex-none w-48 text-center">Actions</div>}
       </div>
       
