@@ -1,5 +1,6 @@
 
 import { z } from "zod";
+import { Timestamp } from "firebase/firestore";
 
 const timeStringSchema = z.string()
   .min(1, "Score is required")
@@ -43,4 +44,5 @@ export interface WhatsappMessage {
     id: string;
     phone: string;
     body: string;
+    timestamp: Timestamp;
 }
