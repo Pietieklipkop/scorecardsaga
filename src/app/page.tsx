@@ -158,6 +158,12 @@ export default function Home() {
   
     const oldPlayers = prevPlayersRef.current;
     const newPlayers = players;
+
+    // Do nothing if there's no change in players
+    if (JSON.stringify(oldPlayers) === JSON.stringify(newPlayers)) {
+        prevPlayersRef.current = newPlayers;
+        return;
+    }
   
     const createPlayerLogObject = (player: Player) => ({
       id: player.id!,
@@ -169,52 +175,55 @@ export default function Home() {
       company: player.company || null,
     });
   
-    // Check for a player addition or score update
-    if (newPlayers.length > oldPlayers.length || (newPlayers.length === oldPlayers.length && JSON.stringify(newPlayers) !== JSON.stringify(oldPlayers))) {
-      const oldTop3 = oldPlayers.slice(0, 3);
-      const newTop3 = newPlayers.slice(0, 3);
-      const newTop3Ids = newTop3.map(p => p.id);
+    const oldTop3 = oldPlayers.slice(0, 3);
+    const newTop3 = newPlayers.slice(0, 3);
+    const newTop3Ids = newTop3.map(p => p.id);
 
-      const addedPlayer = newPlayers.find(p => !oldPlayers.some(op => op.id === p.id));
-      const updatedPlayer = newPlayers.find(np => {
-        const op = oldPlayers.find(op => op.id === np.id);
-        return op && op.score !== np.score;
-      });
+    const addedPlayer = newPlayers.find(p => !oldPlayers.some(op => op.id === p.id));
+    const updatedPlayer = newPlayers.find(np => {
+      const op = oldPlayers.find(op => op.id === np.id);
+      return op && op.score !== np.score;
+    });
 
-      const changedPlayer = addedPlayer || updatedPlayer;
+    const changedPlayer = addedPlayer || updatedPlayer;
 
-      if(changedPlayer){
-          const rank = newPlayers.findIndex(p => p.id === changedPlayer.id) + 1;
-          if (rank <= 3) {
-            sendWhatsappMessage(changedPlayer, "comp_success");
-          } else if (addedPlayer){
-            sendWhatsappMessage(addedPlayer, "comp_failure");
-          }
-      }
-
-      // Check which players from old top 3 were displaced
-      oldTop3.forEach((oldTopPlayer, oldIndex) => {
-        const newIndex = newPlayers.findIndex(p => p.id === oldTopPlayer.id);
-
-        // If the player is no longer in top 3, or their rank has changed within top 3, send dethrone message
-        if (newIndex === -1 || newIndex > 2) {
-             sendWhatsappMessage(oldTopPlayer, "comp_dethrone");
-             const dethroningPlayer = newTop3[oldIndex];
-             if(dethroningPlayer){
-                const newLogData: Omit<ActivityLogEntryData, 'timestamp' | 'id'> = {
-                    type: "dethrone",
-                    newPlayer: createPlayerLogObject(dethroningPlayer),
-                    oldPlayer: createPlayerLogObject(oldTopPlayer),
-                    rank: oldIndex + 1,
-                };
-                addDoc(collection(db, "activity_logs"), {
-                    ...newLogData,
-                    timestamp: serverTimestamp(),
-                });
-             }
+    if(changedPlayer){
+        const rank = newPlayers.findIndex(p => p.id === changedPlayer.id) + 1;
+        if (rank <= 3) {
+          sendWhatsappMessage(changedPlayer, "comp_success");
+        } else if (addedPlayer){
+          // This is where a new player is added but not in top 3
+          // We don't send a failure message anymore based on requirements.
         }
-      });
     }
+
+    // Check which players from old top 3 were displaced
+    oldTop3.forEach((oldTopPlayer, oldIndex) => {
+      const newIndex = newPlayers.findIndex(p => p.id === oldTopPlayer.id);
+
+      // If the player is no longer in top 3, or their rank has changed within top 3
+      if (newIndex === -1 || newIndex > oldIndex) {
+            // Only send dethrone message if they are pushed down or out of top 3
+            if(newIndex === -1 || newIndex > 2) {
+                sendWhatsappMessage(oldTopPlayer, "comp_dethrone");
+            }
+
+            const dethroningPlayer = newTop3[oldIndex];
+            // Log only if someone was actually dethroned from a top 3 spot
+            if (dethroningPlayer && oldTopPlayer.id !== dethroningPlayer.id) {
+               const newLogData: Omit<ActivityLogEntryData, 'timestamp' | 'id'> = {
+                   type: "dethrone",
+                   newPlayer: createPlayerLogObject(dethroningPlayer),
+                   oldPlayer: createPlayerLogObject(oldTopPlayer),
+                   rank: oldIndex + 1,
+               };
+               addDoc(collection(db, "activity_logs"), {
+                   ...newLogData,
+                   timestamp: serverTimestamp(),
+               });
+            }
+      }
+    });
   
     prevPlayersRef.current = newPlayers;
   }, [players, isInitialLoad, user]);
