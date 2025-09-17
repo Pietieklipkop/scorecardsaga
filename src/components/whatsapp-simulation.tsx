@@ -107,9 +107,8 @@ export function WhatsappSimulation({ messages }: WhatsappSimulationProps) {
                                     {msg.phone}
                                 </span>
                             </div>
-                            <Button variant="outline" size="sm" onClick={() => handleCopy(msg.phone, `Phone number ${msg.phone} copied.`)}>
-                                <Copy className="mr-2" />
-                                Copy
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80" onClick={() => handleCopy(msg.phone, `Phone number ${msg.phone} copied.`)}>
+                                <Copy className="h-4 w-4" />
                             </Button>
                         </div>
                       
@@ -122,9 +121,8 @@ export function WhatsappSimulation({ messages }: WhatsappSimulationProps) {
                                 {isExpanded ? "Read Less" : "Read More"}
                                 {isExpanded ? <ChevronUp className="ml-1" /> : <ChevronDown className="ml-1" />}
                             </Button>
-                             <Button variant="outline" size="sm" onClick={() => handleCopy(msg.message, 'Message content copied.')}>
-                                <Copy className="mr-2" />
-                                Copy
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80" onClick={() => handleCopy(msg.message, 'Message content copied.')}>
+                                <Copy className="h-4 w-4" />
                             </Button>
                         </div>
                       </div>
