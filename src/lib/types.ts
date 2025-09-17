@@ -27,11 +27,12 @@ export const playerSchema = z.object({
   score: z.coerce.number().int().min(0, "Score must be a positive number"),
   company: z.string().optional().nullable(),
   termsAccepted: z.boolean().refine((val) => val === true, {
-    message: "You must accept the terms and conditions to continue.",
+    message: "You must accept the terms and conditions.",
   }),
+  retries: z.coerce.number().int().min(0).optional().nullable(),
 });
 
-export const addPlayerFormSchema = playerSchema.omit({ score: true }).extend({
+export const addPlayerFormSchema = playerSchema.omit({ score: true, retries: true }).extend({
     score: timeStringSchema,
 });
 export type AddPlayerFormData = z.infer<typeof addPlayerFormSchema>;

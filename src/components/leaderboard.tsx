@@ -23,6 +23,8 @@ const getRankIndicator = (rank: number) => {
 
 
 export function Leaderboard({ players, onUpdateScore, onDeletePlayer, onPlayerClick }: LeaderboardProps) {
+  const isAdminView = !!onUpdateScore;
+
   return (
     <div className="rounded-lg p-4">
        <div className="flex items-center px-4 h-12 text-white border border-[#87B7EE] bg-[#223B4D] rounded-[3px] mb-[5px]">
@@ -30,7 +32,8 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer, onPlayerCl
         <div className="flex-1 text-left font-raleway font-bold">Player</div>
         <div className="flex-1 text-left font-raleway font-bold">Company</div>
         <div className="flex-none w-[4.5rem] text-center font-raleway font-bold">Score</div>
-        {onUpdateScore && <div className="flex-none w-48 text-center">Actions</div>}
+        {isAdminView && <div className="flex-none w-20 text-center font-raleway font-bold">Retries</div>}
+        {isAdminView && <div className="flex-none w-48 text-center">Actions</div>}
       </div>
       
       <div className="space-y-0">
@@ -62,9 +65,14 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer, onPlayerCl
                               {formatScore(player.score)}
                           </Badge>
                       </div>
-                      {onUpdateScore && (
+                      {isAdminView && (
+                          <div className="flex-none w-20 flex justify-center">
+                              <span className="font-mono text-lg font-bold">{player.retries ?? 0}</span>
+                          </div>
+                      )}
+                      {isAdminView && (
                           <div className="flex-none w-48 flex justify-center gap-2">
-                              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onUpdateScore(player); }} className="text-foreground hover:text-accent-foreground">
+                              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onUpdateScore?.(player); }} className="text-foreground hover:text-accent-foreground">
                                   <TrendingUp className="mr-2 h-4 w-4" />
                                   Update
                               </Button>
@@ -88,5 +96,3 @@ export function Leaderboard({ players, onUpdateScore, onDeletePlayer, onPlayerCl
     </div>
   );
 }
-
-    

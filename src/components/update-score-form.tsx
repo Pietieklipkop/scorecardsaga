@@ -125,6 +125,7 @@ _Fairtree. Values-driven Investing._`;
 
       await updateDoc(playerRef, {
         score: newScoreInSeconds,
+        retries: (player.retries || 0) + 1,
       });
 
       toast({
