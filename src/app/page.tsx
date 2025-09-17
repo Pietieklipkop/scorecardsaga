@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { collection, query, onSnapshot, orderBy, deleteDoc, doc, addDoc, serverTimestamp } from "firebase/firestore";
+import { useState, useEffect } from "react";
+import { collection, query, onSnapshot, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Player } from "@/lib/types";
 import { Leaderboard } from "@/components/leaderboard";
@@ -95,7 +95,6 @@ export default function Home() {
 
   useEffect(() => {
     if (user) {
-      // Listener for players
       const qPlayers = query(collection(db, "players"), orderBy("score", "asc"));
       const unsubscribePlayers = onSnapshot(qPlayers, (querySnapshot) => {
         const playersData: Player[] = [];
