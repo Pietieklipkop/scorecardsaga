@@ -2,15 +2,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp, doc, deleteDoc } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { Player, ActivityLogEntryData } from "@/lib/types";
+import type { Player } from "@/lib/types";
 import { Leaderboard } from "@/components/leaderboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { ActivityLog } from "@/components/activity-log";
-import { WhatsappLogViewer } from "@/components/whatsapp-log-viewer";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import {
@@ -41,8 +39,6 @@ export default function Home() {
   const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const prevPlayersRef = useRef<Player[]>([]);
 
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
@@ -94,38 +90,6 @@ export default function Home() {
     }
   };
 
-  const sendWhatsappMessage = async (player: Player, template: string) => {
-    try {
-        const response = await fetch('/api/send-whatsapp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              to: player.phone,
-              template: template,
-            }),
-        });
-        
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.error || 'Failed to send message');
-        }
-
-        toast({
-            title: "Message Sent!",
-            description: `A '${template}' message was sent to ${player.phone}.`,
-        });
-
-    } catch (error: any) {
-        console.error("Failed to send WhatsApp message:", error);
-        toast({
-            variant: "destructive",
-            title: "WhatsApp Error",
-            description: error.message || `Could not send message to ${player.phone}. Check logs.`,
-        });
-    }
-  };
-
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
@@ -142,63 +106,12 @@ export default function Home() {
         });
         
         setPlayers(playersData);
-        if (isInitialLoad) {
-          prevPlayersRef.current = playersData;
-          setLoading(false);
-          setIsInitialLoad(false); 
-        }
+        setLoading(false);
       });
 
       return () => unsubscribe();
     }
-  }, [user, isInitialLoad]);
-
-  useEffect(() => {
-    if (isInitialLoad || !user) return;
-  
-    const oldPlayers = prevPlayersRef.current;
-    const newPlayers = players;
-  
-    // Efficiently create maps of player IDs to their ranks (index + 1)
-    const oldRanks = new Map(oldPlayers.map((p, i) => [p.id, i + 1]));
-    const newRanks = new Map(newPlayers.map((p, i) => [p.id, i + 1]));
-  
-    // 1. Identify players who were in the top 3 before
-    const oldTop3Players = oldPlayers.slice(0, 3);
-  
-    oldTop3Players.forEach(oldPlayer => {
-      if (!oldPlayer.id) return;
-  
-      const oldRank = oldRanks.get(oldPlayer.id);
-      const newRank = newRanks.get(oldPlayer.id);
-  
-      // If the player is no longer on the board or their rank is now worse than 3rd
-      if (oldRank && oldRank <= 3 && (!newRank || newRank > 3)) {
-
-        const dethroningPlayerId = newPlayers[oldRank -1]?.id;
-        const dethroningPlayer = newPlayers.find(p => p.id === dethroningPlayerId) ?? null;
-  
-        // Log the dethronement
-        const newLogData: Omit<ActivityLogEntryData, 'timestamp' | 'id'> = {
-          type: "dethrone",
-          // The dethroning player is whoever took their spot
-          newPlayer: dethroningPlayer ? { ...dethroningPlayer, termsAccepted: false } : null,
-          oldPlayer: { ...oldPlayer, termsAccepted: false },
-          rank: oldRank,
-        };
-        addDoc(collection(db, "activity_logs"), {
-          ...newLogData,
-          timestamp: serverTimestamp(),
-        });
-  
-        // Send a WhatsApp message to the dethroned player
-        sendWhatsappMessage(oldPlayer, "comp_dethrone");
-      }
-    });
-  
-    prevPlayersRef.current = newPlayers;
-  }, [players, isInitialLoad, user]);
-  
+  }, [user]);
 
   if (authLoading || !user) {
     return (
@@ -217,8 +130,8 @@ export default function Home() {
     <>
       <Header />
       <main className="container mx-auto px-4 py-8 md:py-12 flex-grow">
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className="lg:w-2/3">
+        <div className="flex flex-col gap-8">
+          <div className="w-full">
             {loading ? (
               <div className="rounded-xl border bg-card text-card-foreground shadow-lg p-4 space-y-4">
                 <Skeleton className="h-12 w-full" />
@@ -235,10 +148,6 @@ export default function Home() {
                 onPlayerClick={handlePlayerClick}
               />
             )}
-          </div>
-          <div className="lg:w-1/3 space-y-8">
-            <ActivityLog />
-            <WhatsappLogViewer />
           </div>
         </div>
       </main>
@@ -282,4 +191,3 @@ export default function Home() {
     </>
   );
 }
-
