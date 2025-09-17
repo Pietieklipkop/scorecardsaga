@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { collection, query, onSnapshot, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { Player } from "@/lib/types";
+import type { Player, WhatsappMessage } from "@/lib/types";
 import { Leaderboard } from "@/components/leaderboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/header";
@@ -31,6 +31,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { PlayerDetailsModal } from "@/components/player-details-modal";
+import { WhatsappSimulation } from "@/components/whatsapp-simulation";
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
@@ -44,6 +45,7 @@ export default function Home() {
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
   const [isPlayerDetailsOpen, setIsPlayerDetailsOpen] = useState(false);
   const [playerForDetails, setPlayerForDetails] = useState<Player | null>(null);
+  const [whatsappMessages, setWhatsappMessages] = useState<WhatsappMessage[]>([]);
 
 
   const handleUpdateScoreClick = (player: Player) => {
@@ -105,8 +107,23 @@ export default function Home() {
         setLoading(false);
       });
 
+      const qWhatsapp = query(collection(db, "whatsapp_messaging"), orderBy("timestamp", "desc"));
+      const unsubscribeWhatsapp = onSnapshot(qWhatsapp, (querySnapshot) => {
+        const messagesData: WhatsappMessage[] = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          messagesData.push({ 
+            id: doc.id, 
+            ...data,
+            timestamp: data.timestamp?.toDate() // Convert Firestore Timestamp to JS Date
+          } as WhatsappMessage);
+        });
+        setWhatsappMessages(messagesData);
+      });
+
       return () => {
         unsubscribePlayers();
+        unsubscribeWhatsapp();
       };
     }
   }, [user]);
@@ -145,6 +162,9 @@ export default function Home() {
               onPlayerClick={handlePlayerClick}
             />
           )}
+        </div>
+        <div className="mt-12">
+            <WhatsappSimulation messages={whatsappMessages} />
         </div>
       </main>
       <Footer players={players} />
