@@ -208,7 +208,7 @@ _Fairtree. Values-driven Investing._`;
           name="score"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Initial Score</FormLabel>
+              <FormLabel>Score</FormLabel>
               <FormControl>
                 <Input type="text" placeholder="MMSS" {...field} />
               </FormControl>
@@ -238,10 +238,6 @@ _Fairtree. Values-driven Investing._`;
                   You agree to our{" "}
                   <Link href="#" className="underline hover:text-primary">
                     Terms of Service
-                  </Link>
-                  {" and "}
-                  <Link href="#" className="underline hover:text-primary">
-                    Privacy Policy
                   </Link>
                   .
                 </FormDescription>
