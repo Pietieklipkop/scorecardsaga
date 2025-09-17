@@ -73,7 +73,7 @@ export function WhatsappSimulation({ messages }: WhatsappSimulationProps) {
                   key={msg.id} 
                   className={cn(
                     "flex items-start gap-3 rounded-lg border p-3 transition-colors",
-                    msg.sent ? "bg-muted/50 opacity-70" : "bg-card"
+                    msg.sent ? "bg-green-100" : "bg-yellow-100"
                   )}
                 >
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 shrink-0 mt-1">
