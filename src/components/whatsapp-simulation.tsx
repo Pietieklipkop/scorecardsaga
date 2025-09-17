@@ -5,7 +5,7 @@ import { useState } from 'react';
 import type { WhatsappMessage } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, Copy, Mail, Phone, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { Bot, Copy, Mail, Phone, Clock, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +13,7 @@ import { Checkbox } from './ui/checkbox';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
 
 interface WhatsappSimulationProps {
@@ -23,10 +24,10 @@ interface WhatsappSimulationProps {
 
 export function WhatsappSimulation({ messages, collapsibleTrigger, collapsibleContentWrapper }: WhatsappSimulationProps) {
   const { toast } = useToast();
-  const [expandedMessages, setExpandedMessages] = useState<Record<string, boolean>>({});
+  const [openMessages, setOpenMessages] = useState<Record<string, boolean>>({});
 
-  const toggleReadMore = (messageId: string) => {
-    setExpandedMessages(prev => ({
+  const toggleMessageOpen = (messageId: string) => {
+    setOpenMessages(prev => ({
       ...prev,
       [messageId]: !prev[messageId]
     }));
@@ -84,72 +85,77 @@ export function WhatsappSimulation({ messages, collapsibleTrigger, collapsibleCo
             <div className="space-y-4">
               {messages.length > 0 ? (
                 messages.map((msg) => {
-                  const isExpanded = expandedMessages[msg.id];
+                  const isOpen = openMessages[msg.id] || false;
                   return (
-                    <div 
-                      key={msg.id} 
+                    <Collapsible 
+                      key={msg.id}
+                      open={isOpen}
+                      onOpenChange={() => toggleMessageOpen(msg.id)}
                       className={cn(
-                        "flex items-start gap-3 rounded-lg border p-3 transition-colors",
+                        "rounded-lg border p-3 transition-colors",
                         msg.sent ? "bg-green-100" : "bg-yellow-100"
                       )}
                     >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 shrink-0 mt-1">
-                        <Bot className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div className="flex-1 space-y-2">
-                          <div className="flex justify-between items-center">
-                              <div className="flex items-center gap-2">
-                                  <Mail className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex items-start gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 shrink-0 mt-1">
+                            <Bot className="h-5 w-5 text-green-600" />
+                          </div>
+                          <div className="flex-1 space-y-2">
+                              <div className="flex justify-between items-center">
                                   <span className="text-sm font-semibold text-foreground">
                                       To: {msg.name} {msg.surname}
                                   </span>
+                                  <div className="flex items-center gap-2">
+                                    <CollapsibleTrigger asChild>
+                                      <Button variant="ghost" size="sm">
+                                        {isOpen ? "Hide" : "Show"} Message
+                                        {isOpen ? <ChevronUp className="h-4 w-4 ml-2" /> : <ChevronDown className="h-4 w-4 ml-2" />}
+                                      </Button>
+                                    </CollapsibleTrigger>
+                                  </div>
                               </div>
-                          </div>
-
-                          <div className="flex justify-between items-center">
-                              <div className="flex items-center gap-2">
-                                  <Phone className="h-4 w-4 text-muted-foreground" />
-                                  <span className="text-sm font-mono text-foreground">
-                                      {msg.phone}
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <Clock className="h-4 w-4" />
+                                  <span>
+                                      Queued: {formatDistanceToNow(new Date(msg.timestamp), { addSuffix: true })}
                                   </span>
                               </div>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80" onClick={() => handleCopy(msg.phone, `Phone number ${msg.phone} copied.`)}>
-                                  <Copy className="h-4 w-4" />
-                              </Button>
+                              
+                              <CollapsibleContent className="space-y-2 pt-2">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <Phone className="h-4 w-4 text-muted-foreground" />
+                                        <span className="text-sm font-mono text-foreground">
+                                            {msg.phone}
+                                        </span>
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80" onClick={() => handleCopy(msg.phone, `Phone number ${msg.phone} copied.`)}>
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                              
+                                <div className="space-y-2 pt-1">
+                                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                                      {msg.message}
+                                  </p>
+                                  <div className="flex justify-end items-center">
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80" onClick={() => handleCopy(msg.message, 'Message content copied.')}>
+                                          <Copy className="h-4 w-4" />
+                                      </Button>
+                                  </div>
+                                </div>
+                              </CollapsibleContent>
                           </div>
-                        
-                        <div className="space-y-2 pt-1">
-                          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                              {isExpanded ? msg.message : `${msg.message.substring(0, 80)}...`}
-                          </p>
-                          <div className="flex justify-between items-center">
-                              <Button variant="link" size="sm" className="p-0 h-auto" onClick={() => toggleReadMore(msg.id)}>
-                                  {isExpanded ? "Read Less" : "Read More"}
-                                  {isExpanded ? <ChevronUp className="ml-1" /> : <ChevronDown className="ml-1" />}
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:text-primary/80" onClick={() => handleCopy(msg.message, 'Message content copied.')}>
-                                  <Copy className="h-4 w-4" />
-                              </Button>
+                          <div className="flex flex-col items-center justify-start h-full pl-2">
+                            <Checkbox
+                              id={`sent-${msg.id}`}
+                              checked={!!msg.sent}
+                              onCheckedChange={() => handleSentToggle(msg.id, !!msg.sent)}
+                              aria-label="Mark as sent"
+                            />
                           </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
-                            <Clock className="h-4 w-4" />
-                            <span>
-                                Queued: {formatDistanceToNow(new Date(msg.timestamp), { addSuffix: true })}
-                            </span>
-                        </div>
-
                       </div>
-                      <div className="flex flex-col items-center justify-center h-full pl-2">
-                        <Checkbox
-                          id={`sent-${msg.id}`}
-                          checked={!!msg.sent}
-                          onCheckedChange={() => handleSentToggle(msg.id, !!msg.sent)}
-                          aria-label="Mark as sent"
-                        />
-                      </div>
-                    </div>
+                    </Collapsible>
                   )
               })
               ) : (
