@@ -8,6 +8,11 @@ import { Bot, Copy } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { Checkbox } from './ui/checkbox';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { cn } from '@/lib/utils';
+
 
 interface WhatsappSimulationProps {
   messages: WhatsappMessage[];
@@ -32,6 +37,22 @@ export function WhatsappSimulation({ messages }: WhatsappSimulationProps) {
     });
   };
 
+  const handleSentToggle = async (messageId: string, currentStatus: boolean) => {
+    try {
+      const messageRef = doc(db, 'whatsapp_messaging', messageId);
+      await updateDoc(messageRef, {
+        sent: !currentStatus,
+      });
+    } catch (error) {
+      console.error('Error updating message status: ', error);
+      toast({
+        variant: 'destructive',
+        title: 'Update Failed',
+        description: 'Could not update message status.',
+      });
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -48,8 +69,14 @@ export function WhatsappSimulation({ messages }: WhatsappSimulationProps) {
           <div className="space-y-4">
             {messages.length > 0 ? (
               messages.map((msg) => (
-                <div key={msg.id} className="flex items-start gap-3 rounded-lg border p-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
+                <div 
+                  key={msg.id} 
+                  className={cn(
+                    "flex items-start gap-3 rounded-lg border p-3 transition-colors",
+                    msg.sent ? "bg-muted/50 opacity-70" : "bg-card"
+                  )}
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 shrink-0 mt-1">
                     <Bot className="h-5 w-5 text-green-600" />
                   </div>
                   <div className="flex-1">
@@ -68,6 +95,14 @@ export function WhatsappSimulation({ messages }: WhatsappSimulationProps) {
                         </p>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">{msg.message}</p>
+                  </div>
+                  <div className="flex flex-col items-center justify-center h-full pl-2">
+                    <Checkbox
+                      id={`sent-${msg.id}`}
+                      checked={!!msg.sent}
+                      onCheckedChange={() => handleSentToggle(msg.id, !!msg.sent)}
+                      aria-label="Mark as sent"
+                    />
                   </div>
                 </div>
               ))

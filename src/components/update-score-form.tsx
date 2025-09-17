@@ -62,7 +62,8 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
       await addDoc(collection(db, "whatsapp_messaging"), {
         phone: dethronedPlayer.phone,
         message: message,
-        timestamp: new Date()
+        timestamp: new Date(),
+        sent: false,
       });
     } catch (error) {
       console.error("Error sending dethrone message:", error);
@@ -100,12 +101,17 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
       for (let i = 0; i < originalTop3.length; i++) {
         const originalPlayer = originalTop3[i];
         const originalRank = i;
+        
+        // Skip notifying the player being updated
+        if (originalPlayer.id === player.id) {
+          continue;
+        }
 
         // Find this player's new rank in the future
         const newRank = futurePlayers.findIndex(p => p.id === originalPlayer.id);
         
-        // If the player moved down and is not the player being updated
-        if (newRank > originalRank && originalPlayer.id !== player.id) {
+        // If the player moved down, send a notification
+        if (newRank > originalRank) {
           await sendDethroneMessage(originalPlayer);
         }
       }

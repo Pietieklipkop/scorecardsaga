@@ -50,7 +50,8 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
       await addDoc(collection(db, "whatsapp_messaging"), {
         phone: player.phone,
         message: message,
-        timestamp: new Date()
+        timestamp: new Date(),
+        sent: false,
       });
     } catch (error) {
       console.error("Error sending dethrone message:", error);
@@ -77,16 +78,9 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
       const newPlayerPotentialRank = currentPlayers.filter(p => p.score < scoreInSeconds).length;
 
       if (newPlayerPotentialRank < 3) {
-        // Player is entering top 3
-        if (newPlayerPotentialRank === 0) { // Entering 1st place
-          if (currentPlayers.length > 0) await sendDethroneMessage(currentPlayers[0]);
-          if (currentPlayers.length > 1) await sendDethroneMessage(currentPlayers[1]);
-          if (currentPlayers.length > 2) await sendDethroneMessage(currentPlayers[2]);
-        } else if (newPlayerPotentialRank === 1) { // Entering 2nd place
-          if (currentPlayers.length > 1) await sendDethroneMessage(currentPlayers[1]);
-          if (currentPlayers.length > 2) await sendDethroneMessage(currentPlayers[2]);
-        } else if (newPlayerPotentialRank === 2) { // Entering 3rd place
-          if (currentPlayers.length > 2) await sendDethroneMessage(currentPlayers[2]);
+        const playersToNotify = currentPlayers.slice(newPlayerPotentialRank, 3);
+        for (const playerToNotify of playersToNotify) {
+            await sendDethroneMessage(playerToNotify);
         }
       }
       // --- End of new proactive notification logic ---

@@ -44,4 +44,5 @@ export interface WhatsappMessage {
     phone: string;
     message: string;
     timestamp: Date;
+    sent: boolean;
 }
