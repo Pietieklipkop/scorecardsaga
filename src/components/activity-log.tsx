@@ -3,18 +3,12 @@
 
 import type { Player, ActivityLogEntryData } from "@/lib/types";
 import { useState, useEffect } from "react";
-import { collection, query, onSnapshot, orderBy, where, Timestamp } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -23,8 +17,8 @@ import {
 } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { History, Medal, UserPlus, ArrowDownCircle, CalendarIcon, UserMinus } from "lucide-react";
-import { format, formatDistanceToNow, startOfDay, endOfDay } from "date-fns";
+import { History, Medal, UserPlus, ArrowDownCircle, UserMinus } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import { formatScore } from "@/lib/utils";
 
 const PlayerTooltip = ({ player, children }: { player: Omit<Player, 'id'>, children: React.ReactNode }) => (
@@ -77,18 +71,13 @@ export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPla
   const { user, loading: authLoading } = useAuth();
   const [logs, setLogs] = useState<ActivityLogEntryData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   useEffect(() => {
-    if (user && selectedDate) {
+    if (user) {
       setLoading(true);
-      const startOfSelectedDay = startOfDay(selectedDate);
-      const endOfSelectedDay = endOfDay(selectedDate);
 
       const q = query(
         collection(db, "activity_logs"), 
-        where("timestamp", ">=", Timestamp.fromDate(startOfSelectedDay)),
-        where("timestamp", "<=", Timestamp.fromDate(endOfSelectedDay)),
         orderBy("timestamp", "desc")
       );
 
@@ -113,7 +102,7 @@ export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPla
     } else if (!authLoading) {
         setLoading(false);
     }
-  }, [user, authLoading, selectedDate]);
+  }, [user, authLoading]);
 
 
   return (
@@ -123,23 +112,6 @@ export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPla
             <History className="h-6 w-6 text-primary" />
             <CardTitle>Activity Log</CardTitle>
         </div>
-        <Popover>
-            <PopoverTrigger asChild>
-                <Button variant="outline" size="sm">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PPP") : "Select Date"}
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-                <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    initialFocus
-                    disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                />
-            </PopoverContent>
-        </Popover>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-96 pr-4">
@@ -234,7 +206,7 @@ export function ActivityLog({ onSendWhatsapp }: { onSendWhatsapp?: (dethronedPla
                 </div>
             ) : (
                 <div className="flex h-48 items-center justify-center text-center text-muted-foreground">
-                    <p>No activity found for {selectedDate ? format(selectedDate, "PPP") : 'the selected date'}.</p>
+                    <p>No activity has been logged yet.</p>
                 </div>
             )}
         </ScrollArea>
