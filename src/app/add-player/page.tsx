@@ -4,15 +4,12 @@
 import { AddPlayerForm } from '@/components/add-player-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 export default function AddPlayerPage() {
-  const router = useRouter();
-
   const handleFormSubmitted = () => {
     // When the form is on its own page, we want to navigate away
-    // after submission.
-    router.push('/');
+    // to an external site after submission.
+    window.location.href = 'https://fairtree.com';
   };
 
   return (
