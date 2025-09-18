@@ -3,7 +3,7 @@
 
 import type { Player } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Download, Projector } from "lucide-react";
+import { Download, Projector, UserPlus } from "lucide-react";
 
 interface FooterProps {
   players: Player[];
@@ -38,6 +38,10 @@ export function Footer({ players }: FooterProps) {
   const openScoreboard = () => {
     window.open("/scoreboard", "_blank");
   };
+  
+  const openAddPlayer = () => {
+    window.open("/add-player", "_blank");
+  };
 
   const getMostAttemptedPlayer = () => {
     if (players.length === 0) {
@@ -65,6 +69,10 @@ export function Footer({ players }: FooterProps) {
             )}
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={openAddPlayer}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Register Player
+          </Button>
           <Button variant="outline" onClick={openScoreboard}>
             <Projector className="mr-2 h-4 w-4" />
             Projector View

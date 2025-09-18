@@ -26,7 +26,7 @@ import { timeStringToHundredths } from "@/lib/utils";
 
 
 interface AddPlayerFormProps {
-  onFormSubmitted: () => void;
+  onFormSubmitted?: () => void;
 }
 
 export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
@@ -122,7 +122,11 @@ _Fairtree. Values-driven Investing._`;
         description: `${data.name} ${data.surname} has been added to the scoreboard.`,
       });
       form.reset();
-      onFormSubmitted();
+      
+      if (onFormSubmitted) {
+        onFormSubmitted();
+      }
+
     } catch (error) {
       console.error("Error adding document: ", error);
       toast({
