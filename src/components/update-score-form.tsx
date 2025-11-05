@@ -8,17 +8,6 @@ import { db } from "@/lib/firebase";
 import { z } from "zod";
 
 import type { Player } from "@/lib/types";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { timeStringToSeconds, formatScore } from "@/lib/utils";
 
@@ -91,28 +80,33 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="score"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>New Score</FormLabel>
-              <FormControl>
-                <Input type="text" placeholder="MMSS" {...field} />
-              </FormControl>
-               <FormDescription>
-                Enter the time as a 4-digit number (e.g., 0827 for 08:27).
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <div className="form-control">
+        <label className="label">
+          <span className="label-text">New Score</span>
+        </label>
+        <input
+          type="text"
+          placeholder="MMSS"
+          className={`input input-bordered ${form.formState.errors.score ? "input-error" : ""}`}
+          {...form.register("score")}
         />
-        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? "Updating..." : "Update Score"}
-        </Button>
-      </form>
-    </Form>
+        <label className="label">
+          <span className="label-text-alt">
+            Enter the time as a 4-digit number (e.g., 0827 for 08:27).
+          </span>
+        </label>
+        {form.formState.errors.score && (
+          <p className="text-error text-sm mt-1">{form.formState.errors.score.message}</p>
+        )}
+      </div>
+      <button type="submit" className="btn btn-primary w-full" disabled={form.formState.isSubmitting}>
+        {form.formState.isSubmitting ? (
+          <span className="loading loading-spinner"></span>
+        ) : (
+          "Update Score"
+        )}
+      </button>
+    </form>
   );
 }

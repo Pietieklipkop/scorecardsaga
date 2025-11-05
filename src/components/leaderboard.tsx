@@ -2,10 +2,9 @@
 "use client";
 
 import type { Player } from "@/lib/types";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Medal, TrendingUp, Trash2 } from "lucide-react";
 import { formatScore } from "@/lib/utils";
+import type { Player } from "@/lib/types";
 
 interface LeaderboardProps {
   players: Player[];
@@ -18,73 +17,82 @@ const getRankIndicator = (rank: number) => {
   if (rank === 1) return <Medal className="h-6 w-6 text-yellow-500" />;
   if (rank === 2) return <Medal className="h-6 w-6 text-slate-400" />;
   if (rank === 3) return <Medal className="h-6 w-6 text-amber-600" />;
-  return <div className="flex h-6 w-6 items-center justify-center font-bold text-white">{rank}.</div>;
+  return <div className="flex h-6 w-6 items-center justify-center font-bold">{rank}.</div>;
 };
-
 
 export function Leaderboard({ players, onUpdateScore, onDeletePlayer, onPlayerClick }: LeaderboardProps) {
   return (
-    <div className="rounded-lg p-4">
-       <div className="flex items-center px-4 h-12 text-white border border-[#87B7EE] bg-[#223B4D] rounded-[3px] mb-[5px]">
-        <div className="flex-none w-20 text-left font-raleway font-bold">Rank</div>
-        <div className="flex-1 text-left font-raleway font-bold">Player</div>
-        <div className="flex-1 text-left font-raleway font-bold">Company</div>
-        <div className="flex-none w-[4.5rem] text-center font-raleway font-bold">Score</div>
-        {onUpdateScore && <div className="flex-none w-48 text-center">Actions</div>}
-      </div>
-      
-      <div className="space-y-0">
+    <div className="overflow-x-auto">
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Player</th>
+            <th>Company</th>
+            <th>Score</th>
+            {onUpdateScore && <th className="text-center">Actions</th>}
+          </tr>
+        </thead>
+        <tbody>
           {players.length > 0 ? (
-              players.map((player, index) => {
+            players.map((player, index) => {
               const rank = index + 1;
               const isClickable = !!onPlayerClick;
               return (
-                  <div 
-                      key={player.id || player.email} 
-                      onClick={() => onPlayerClick?.(player)}
-                      className={`flex items-center px-4 py-2 transition-colors text-white border border-[#87B7EE] bg-[#223B4D] rounded-[3px] ${isClickable ? 'cursor-pointer hover:bg-[#2c4c64]' : ''}`}
-                  >
-                      <div className="flex-none w-20 flex items-center justify-start">
-                          {getRankIndicator(rank)}
+                <tr
+                  key={player.id || player.email}
+                  onClick={() => onPlayerClick?.(player)}
+                  className={isClickable ? "cursor-pointer hover" : ""}
+                >
+                  <td>{getRankIndicator(rank)}</td>
+                  <td>
+                    {player.name} {player.surname}
+                  </td>
+                  <td>{player.company || "N/A"}</td>
+                  <td>
+                    <div className="badge badge-primary badge-outline font-mono">
+                      {formatScore(player.score)}
+                    </div>
+                  </td>
+                  {onUpdateScore && (
+                    <td>
+                      <div className="flex justify-center gap-2">
+                        <button
+                          className="btn btn-sm btn-outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onUpdateScore(player);
+                          }}
+                        >
+                          <TrendingUp className="h-4 w-4" />
+                          Update
+                        </button>
+                        {onDeletePlayer && (
+                          <button
+                            className="btn btn-sm btn-square btn-error"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeletePlayer(player);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
-                      <div className="flex-1 flex items-center font-raleway text-left">
-                          <div>{player.name} {player.surname}</div>
-                      </div>
-                      <div className="flex-1 font-raleway text-left">
-                          {player.company ? (
-                              <div className="text-sm">{player.company}</div>
-                          ) : (
-                              <div className="text-sm text-white/50">N/A</div>
-                          )}
-                      </div>
-                      <div className="flex-none w-[4.5rem] flex justify-center">
-                          <Badge variant="outline" className="text-lg font-bold border-2 border-primary/50 text-white bg-primary/20 font-mono tabular-nums">
-                              {formatScore(player.score)}
-                          </Badge>
-                      </div>
-                      {onUpdateScore && (
-                          <div className="flex-none w-48 flex justify-center gap-2">
-                              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onUpdateScore(player); }} className="text-foreground hover:text-accent-foreground">
-                                  <TrendingUp className="mr-2 h-4 w-4" />
-                                  Update
-                              </Button>
-                              {onDeletePlayer && (
-                                <Button variant="destructive" size="icon" onClick={(e) => { e.stopPropagation(); onDeletePlayer(player); }}>
-                                    <Trash2 className="h-4 w-4" />
-                                    <span className="sr-only">Delete</span>
-                                </Button>
-                              )}
-                          </div>
-                      )}
-                  </div>
+                    </td>
+                  )}
+                </tr>
               );
-              })
+            })
           ) : (
-            <div className="flex items-center justify-center h-48 text-center text-white border border-[#87B7EE] bg-[#223B4D] rounded-[3px]">
+            <tr>
+              <td colSpan={onUpdateScore ? 5 : 4} className="text-center py-12">
                 The leaderboard is empty. Add a player to get started!
-            </div>
+              </td>
+            </tr>
           )}
-      </div>
+        </tbody>
+      </table>
     </div>
   );
 }

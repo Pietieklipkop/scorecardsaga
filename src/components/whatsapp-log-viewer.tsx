@@ -7,24 +7,24 @@ import { collection, query, onSnapshot, orderBy, Timestamp } from "firebase/fire
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
 import { MessageSquareText } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
+import type { WhatsappLog } from "@/lib/types";
+import { useState, useEffect } from "react";
+import { collection, query, onSnapshot, orderBy, Timestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useAuth } from "@/hooks/use-auth";
 
 const StatusBadge = ({ status }: { status: WhatsappLog['status'] }) => {
     switch (status) {
         case 'success':
-            return <Badge variant="default" className="bg-green-600 hover:bg-green-700">Success</Badge>;
+            return <div className="badge badge-success">Success</div>;
         case 'failure':
-            return <Badge variant="destructive">Failure</Badge>;
+            return <div className="badge badge-error">Failure</div>;
         case 'pending':
-            return <Badge variant="secondary">Pending</Badge>;
+            return <div className="badge badge-warning">Pending</div>;
         default:
-            return <Badge variant="outline">Unknown</Badge>;
+            return <div className="badge badge-ghost">Unknown</div>;
     }
 };
 
@@ -46,7 +46,7 @@ export function WhatsappLogViewer() {
             logsData.push({ 
                 id: doc.id, 
                 ...data,
-                timestamp: (data.timestamp as Timestamp)?.toDate() || new Date() // Convert Firestore Timestamp to Date
+                timestamp: (data.timestamp as Timestamp)?.toDate() || new Date()
             } as WhatsappLog);
         });
         setLogs(logsData);
@@ -62,61 +62,54 @@ export function WhatsappLogViewer() {
     }
   }, [user, authLoading]);
 
-
   const handleLogClick = (log: WhatsappLog) => {
     setSelectedLog(log);
   };
 
   return (
     <>
-        <Card className="shadow-lg">
-        <CardHeader className="flex flex-row items-center justify-between">
-            <div className="flex items-center gap-3">
-                <MessageSquareText className="h-6 w-6 text-primary" />
-                <CardTitle>WhatsApp Logs</CardTitle>
-            </div>
-        </CardHeader>
-        <CardContent>
-            <ScrollArea className="h-60 pr-4">
-                {loading ? (
-                    <div className="space-y-4 pt-4">
-                        <Skeleton className="h-12 w-full" />
-                        <Skeleton className="h-12 w-full" />
-                        <Skeleton className="h-12 w-full" />
-                    </div>
-                ) : logs.length > 0 ? (
-                    <div className="space-y-3">
-                        {logs.map((log) => (
-                        <div key={log.id} onClick={() => handleLogClick(log)} className="p-3 rounded-md border bg-card hover:bg-muted/50 cursor-pointer transition-colors">
-                            <div className="flex justify-between items-center mb-1">
-                                <p className="font-semibold text-sm">{log.to}</p>
-                                <StatusBadge status={log.status} />
-                            </div>
-                            <div className="flex justify-between items-end text-xs text-muted-foreground">
-                                <span>Template: <span className="font-mono bg-muted px-1 py-0.5 rounded">{log.template}</span></span>
-                                <span>{log.timestamp ? formatDistanceToNow(log.timestamp, { addSuffix: true }) : 'No date'}</span>
-                            </div>
+        <div className="card shadow-lg bg-base-100">
+            <div className="card-body">
+                <div className="flex items-center gap-3">
+                    <MessageSquareText className="h-6 w-6 text-primary" />
+                    <h2 className="card-title">WhatsApp Logs</h2>
+                </div>
+                <div className="h-60 overflow-y-auto pr-4">
+                    {loading ? (
+                        <div className="space-y-4 pt-4">
+                            <div className="skeleton h-12 w-full"></div>
+                            <div className="skeleton h-12 w-full"></div>
+                            <div className="skeleton h-12 w-full"></div>
                         </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="flex h-48 items-center justify-center text-center text-muted-foreground">
-                        <p>No WhatsApp messages have been sent yet.</p>
-                    </div>
-                )}
-            </ScrollArea>
-        </CardContent>
-        </Card>
+                    ) : logs.length > 0 ? (
+                        <div className="space-y-3">
+                            {logs.map((log) => (
+                            <div key={log.id} onClick={() => handleLogClick(log)} className="p-3 rounded-md border bg-base-200 hover:bg-base-300 cursor-pointer transition-colors">
+                                <div className="flex justify-between items-center mb-1">
+                                    <p className="font-semibold text-sm">{log.to}</p>
+                                    <StatusBadge status={log.status} />
+                                </div>
+                                <div className="flex justify-between items-end text-xs">
+                                    <span>Template: <span className="font-mono bg-base-300 px-1 py-0.5 rounded">{log.template}</span></span>
+                                    <span>{log.timestamp ? formatDistanceToNow(log.timestamp, { addSuffix: true }) : 'No date'}</span>
+                                </div>
+                            </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex h-48 items-center justify-center text-center">
+                            <p>No WhatsApp messages have been sent yet.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
 
-        <Dialog open={!!selectedLog} onOpenChange={(isOpen) => !isOpen && setSelectedLog(null)}>
-            <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>Log Details</DialogTitle>
-                    <DialogDescription>
-                        Detailed information for the WhatsApp message sent to {selectedLog?.to}.
-                    </DialogDescription>
-                </DialogHeader>
-                {selectedLog && (
+        {selectedLog && (
+            <div className="modal modal-open">
+                <div className="modal-box w-11/12 max-w-lg">
+                    <h3 className="font-bold text-lg">Log Details</h3>
+                    <p className="py-2">Detailed information for the WhatsApp message sent to {selectedLog?.to}.</p>
                     <div className="mt-4 space-y-4 text-sm">
                         <div>
                             <h3 className="font-semibold mb-1">Status</h3>
@@ -128,26 +121,29 @@ export function WhatsappLogViewer() {
                         </div>
                         {selectedLog.error && (
                             <div>
-                                <h3 className="font-semibold mb-1 text-destructive">Error</h3>
-                                <p className="font-mono bg-destructive/10 text-destructive p-2 rounded-md break-all">{selectedLog.error}</p>
+                                <h3 className="font-semibold mb-1 text-error">Error</h3>
+                                <p className="font-mono bg-error/10 text-error p-2 rounded-md break-all">{selectedLog.error}</p>
                             </div>
                         )}
                         <div>
                             <h3 className="font-semibold mb-1">Payload Sent to Twilio</h3>
-                            <pre className="bg-muted p-2 rounded-md text-xs overflow-auto">
+                            <pre className="bg-base-200 p-2 rounded-md text-xs overflow-auto">
                                 {JSON.stringify(selectedLog.payload, null, 2)}
                             </pre>
                         </div>
                         <div>
                             <h3 className="font-semibold mb-1">Message Instance</h3>
-                            <pre className="bg-muted p-2 rounded-md text-xs overflow-auto">
+                            <pre className="bg-base-200 p-2 rounded-md text-xs overflow-auto">
                                 {JSON.stringify(selectedLog, null, 2)}
                             </pre>
                         </div>
                     </div>
-                )}
-            </DialogContent>
-        </Dialog>
+                    <div className="modal-action">
+                        <button className="btn" onClick={() => setSelectedLog(null)}>Close</button>
+                    </div>
+                </div>
+            </div>
+        )}
     </>
   );
 }

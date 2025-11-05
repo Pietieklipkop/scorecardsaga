@@ -10,7 +10,6 @@ interface FooterProps {
 }
 
 export function Footer({ players }: FooterProps) {
-
   const exportToCSV = () => {
     const headers = ["Name", "Surname", "Email", "Phone", "Score"];
     const rows = players.map((player) => [
@@ -21,9 +20,11 @@ export function Footer({ players }: FooterProps) {
       player.score,
     ]);
 
-    let csvContent = "data:text/csv;charset=utf-8," 
-      + headers.join(",") + "\n" 
-      + rows.map(e => e.join(",")).join("\n");
+    let csvContent =
+      "data:text/csv;charset=utf-8," +
+      headers.join(",") +
+      "\n" +
+      rows.map((e) => e.join(",")).join("\n");
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -39,20 +40,24 @@ export function Footer({ players }: FooterProps) {
   };
 
   return (
-    <footer className="w-full border-t bg-background">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <p className="text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Scoreboard Saga. All rights reserved.
+    <footer className="footer footer-center p-4 bg-base-300 text-base-content">
+      <div>
+        <p>
+          &copy; {new Date().getFullYear()} Fairtree. All rights reserved.
         </p>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={openScoreboard}>
+          <button className="btn btn-ghost" onClick={openScoreboard}>
             <Projector className="mr-2 h-4 w-4" />
             Projector View
-          </Button>
-          <Button variant="outline" onClick={exportToCSV} disabled={players.length === 0}>
+          </button>
+          <button
+            className="btn btn-ghost"
+            onClick={exportToCSV}
+            disabled={players.length === 0}
+          >
             <Download className="mr-2 h-4 w-4" />
             Export to CSV
-          </Button>
+          </button>
         </div>
       </div>
     </footer>
