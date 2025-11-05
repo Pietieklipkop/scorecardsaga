@@ -23,14 +23,11 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-3">
-          <Trophy className="h-8 w-8 text-primary" />
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
-            Scoreboard Saga
-          </h1>
-        </div>
+    <div className="navbar bg-base-100">
+      <div className="flex-1">
+        <a className="btn btn-ghost text-xl">Fairtree</a>
+      </div>
+      <div className="flex-none">
         {user && (
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground hidden sm:inline">
@@ -38,10 +35,10 @@ export function Header() {
             </span>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <button className="btn btn-primary">
                   <UserPlus className="mr-2 h-5 w-5" />
                   Add Player
-                </Button>
+                </button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[480px]">
                 <DialogHeader>
@@ -53,13 +50,13 @@ export function Header() {
                 <AddPlayerForm onFormSubmitted={handlePlayerAdded} />
               </DialogContent>
             </Dialog>
-            <Button variant="outline" size="icon" onClick={logout}>
+            <button className="btn btn-ghost" onClick={logout}>
               <LogOut className="h-5 w-5" />
               <span className="sr-only">Logout</span>
-            </Button>
+            </button>
           </div>
         )}
       </div>
-    </header>
+    </div>
   );
 }

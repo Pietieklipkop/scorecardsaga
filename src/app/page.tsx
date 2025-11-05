@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { PlayerDetailsModal } from "@/components/player-details-modal";
+import { LandingPage } from "@/components/landing-page";
 
 
 export default function Home() {
@@ -126,11 +127,6 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, authLoading, router]);
 
   useEffect(() => {
     if (user) {
@@ -260,7 +256,7 @@ export default function Home() {
     prevPlayersRef.current = newPlayers;
   }, [players, isInitialLoad, user]);
 
-  if (authLoading || !user) {
+  if (authLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="flex items-center space-x-2">
@@ -271,6 +267,10 @@ export default function Home() {
         </div>
       </div>
     );
+  }
+
+  if (!user) {
+    return <LandingPage />;
   }
 
   return (

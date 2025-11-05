@@ -2,16 +2,9 @@
 'use client';
 
 import type { Player } from '@/lib/types';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
 import { User, Mail, Phone, Building, Star } from 'lucide-react';
 import { formatScore } from '@/lib/utils';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import type { Player } from '@/lib/types';
 
 interface PlayerDetailsModalProps {
   player: Player | null;
@@ -29,47 +22,48 @@ export function PlayerDetailsModal({ player, isOpen, onOpenChange }: PlayerDetai
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-16 w-16">
-              <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
-                {getInitials(player.name, player.surname)}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <DialogTitle className="text-2xl">{player.name} {player.surname}</DialogTitle>
-              <DialogDescription>Player Details</DialogDescription>
+    <div className={`modal ${isOpen ? "modal-open" : ""}`}>
+      <div className="modal-box">
+        <div className="flex items-center space-x-4">
+          <div className="avatar placeholder">
+            <div className="bg-neutral-focus text-neutral-content rounded-full w-16">
+              <span className="text-2xl">{getInitials(player.name, player.surname)}</span>
             </div>
           </div>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
+          <div>
+            <h3 className="font-bold text-2xl">{player.name} {player.surname}</h3>
+            <p className="text-sm">Player Details</p>
+          </div>
+        </div>
+        <div className="py-4 space-y-2">
           <div className="flex items-center space-x-3">
-            <User className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm">{player.name} {player.surname}</span>
+            <User className="h-5 w-5" />
+            <span>{player.name} {player.surname}</span>
           </div>
           {player.company && (
             <div className="flex items-center space-x-3">
-              <Building className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm">{player.company}</span>
+              <Building className="h-5 w-5" />
+              <span>{player.company}</span>
             </div>
           )}
           <div className="flex items-center space-x-3">
-            <Mail className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm">{player.email}</span>
+            <Mail className="h-5 w-5" />
+            <span>{player.email}</span>
           </div>
           <div className="flex items-center space-x-3">
-            <Phone className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm">{player.phone}</span>
+            <Phone className="h-5 w-5" />
+            <span>{player.phone}</span>
           </div>
           <div className="flex items-center space-x-3">
-            <Star className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm font-semibold">Score: {formatScore(player.score)}</span>
+            <Star className="h-5 w-5" />
+            <span className="font-semibold">Score: {formatScore(player.score)}</span>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+        <div className="modal-action">
+          <button className="btn" onClick={() => onOpenChange(false)}>Close</button>
+        </div>
+      </div>
+    </div>
   );
 }
 
