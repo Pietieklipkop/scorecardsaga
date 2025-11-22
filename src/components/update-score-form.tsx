@@ -3,7 +3,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { doc, updateDoc, collection, query, getDocs, orderBy, addDoc } from "firebase/firestore"; 
+import { doc, updateDoc, collection, query, getDocs, orderBy, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { z } from "zod";
 
@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { timeStringToHundredths, formatScore } from "@/lib/utils";
+import { sendWhatsappMessage } from "@/app/actions/whatsapp";
 
 interface UpdateScoreFormProps {
   player: Player;
@@ -44,8 +45,8 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
         message: "Seconds part (SS) must be between 00 and 59.",
       })
       .refine(val => {
-          const newScore = timeStringToHundredths(val);
-          return newScore < player.score;
+        const newScore = timeStringToHundredths(val);
+        return newScore < player.score;
       }, `Score must be lower than the current score of ${formatScore(player.score)}.`)
   });
 
@@ -65,13 +66,17 @@ You’ve been challenged and knocked off your spot! 💥 True *excellence* isn�
 
 _Fairtree. Values-driven Investing._`;
     try {
+      // Send via Twilio
+      await sendWhatsappMessage(dethronedPlayer.phone, 'leaderboard');
+
+      // Log to Firestore for simulation
       await addDoc(collection(db, "whatsapp_messaging"), {
         phone: dethronedPlayer.phone,
         name: dethronedPlayer.name,
         surname: dethronedPlayer.surname,
         message: message,
         timestamp: new Date(),
-        sent: false,
+        sent: true, // Mark as sent
       });
     } catch (error) {
       console.error("Error sending dethrone message:", error);
@@ -81,14 +86,14 @@ _Fairtree. Values-driven Investing._`;
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     if (!player.id) {
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Player ID is missing. Cannot update score.",
-        });
-        return;
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Player ID is missing. Cannot update score.",
+      });
+      return;
     }
-    
+
     try {
       const playerRef = doc(db, "players", player.id);
       const newScoreInHundredths = timeStringToHundredths(data.score);
@@ -109,7 +114,7 @@ _Fairtree. Values-driven Investing._`;
       for (let i = 0; i < originalTop3.length; i++) {
         const originalPlayer = originalTop3[i];
         const originalRank = i;
-        
+
         // Skip notifying the player being updated
         if (originalPlayer.id === player.id) {
           continue;
@@ -117,13 +122,23 @@ _Fairtree. Values-driven Investing._`;
 
         // Find this player's new rank in the future
         const newRank = futurePlayers.findIndex(p => p.id === originalPlayer.id);
-        
+
         // If the player moved down, send a notification
         if (newRank > originalRank) {
           await sendDethroneMessage(originalPlayer);
         }
       }
       // --- End of proactive notification logic for updates ---
+
+      // Send success/failure message to the updated player
+      // Calculate their new rank in the hypothetical future leaderboard
+      const updatedPlayerRank = futurePlayers.findIndex(p => p.id === player.id);
+
+      if (updatedPlayerRank < 3) {
+        await sendWhatsappMessage(player.phone, 'success');
+      } else {
+        await sendWhatsappMessage(player.phone, 'failure');
+      }
 
       await updateDoc(playerRef, {
         score: newScoreInHundredths,
@@ -158,7 +173,7 @@ _Fairtree. Values-driven Investing._`;
               <FormControl>
                 <Input type="text" placeholder="SSmm" {...field} />
               </FormControl>
-               <FormDescription>
+              <FormDescription>
                 Enter the time as a 4-digit number (e.g., 2345 for 23.45s).
               </FormDescription>
               <FormMessage />
@@ -166,7 +181,7 @@ _Fairtree. Values-driven Investing._`;
           )}
         />
         <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? "Updating..." : "Update Score"}
+          {form.formState.isSubmitting ? "Updating..." : "Update Score"}
         </Button>
       </form>
     </Form>

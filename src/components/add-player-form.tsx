@@ -3,7 +3,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { collection, addDoc, query, getDocs, orderBy } from "firebase/firestore"; 
+import { collection, addDoc, query, getDocs, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 import type { Player } from "@/lib/types";
@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "./ui/checkbox";
 import Link from "next/link";
 import { timeStringToHundredths } from "@/lib/utils";
+import { sendWhatsappMessage } from "@/app/actions/whatsapp";
 
 
 interface AddPlayerFormProps {
@@ -53,13 +54,17 @@ You’ve been challenged and knocked off your spot! 💥 True *excellence* isn�
 
 _Fairtree. Values-driven Investing._`;
     try {
+      // Send via Twilio
+      await sendWhatsappMessage(player.phone, 'leaderboard');
+
+      // Log to Firestore for simulation
       await addDoc(collection(db, "whatsapp_messaging"), {
         phone: player.phone,
         name: player.name,
         surname: player.surname,
         message: message,
         timestamp: new Date(),
-        sent: false,
+        sent: true, // Mark as sent since we are sending it via Twilio now
       });
     } catch (error) {
       console.error("Error sending dethrone message:", error);
@@ -86,15 +91,24 @@ _Fairtree. Values-driven Investing._`;
 
       const newPlayerPotentialRank = currentPlayers.filter(p => p.score < scoreInHundredths).length;
 
+      // Send success/failure message to the new player
+      if (newPlayerPotentialRank < 3) {
+        // Success message
+        await sendWhatsappMessage(data.phone, 'success');
+      } else {
+        // Failure message
+        await sendWhatsappMessage(data.phone, 'failure');
+      }
+
       if (newPlayerPotentialRank < 3) {
         const playersToNotify = currentPlayers.slice(newPlayerPotentialRank, 3);
         for (const playerToNotify of playersToNotify) {
-            await sendDethroneMessage(playerToNotify);
+          await sendDethroneMessage(playerToNotify);
         }
       }
       // --- End of new proactive notification logic ---
 
-      
+
       await addDoc(collection(db, "players"), finalPlayerData);
 
       // Zapier Webhook
@@ -122,7 +136,7 @@ _Fairtree. Values-driven Investing._`;
         description: `${data.name} ${data.surname} has been added to the scoreboard.`,
       });
       form.reset();
-      
+
       if (onFormSubmitted) {
         onFormSubmitted();
       }
@@ -141,32 +155,32 @@ _Fairtree. Values-driven Investing._`;
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="John" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="surname"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Surname</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Doe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="John" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="surname"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Surname</FormLabel>
+                <FormControl>
+                  <Input placeholder="Doe" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
         <FormField
           control={form.control}
@@ -204,7 +218,7 @@ _Fairtree. Values-driven Investing._`;
             <FormItem>
               <FormLabel>Company (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="Acme Inc." {...field} />
+                <Input placeholder="Acme Inc." {...field} value={field.value ?? ''} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -254,7 +268,7 @@ _Fairtree. Values-driven Investing._`;
           )}
         />
         <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? "Adding..." : "Add Player to Scoreboard"}
+          {form.formState.isSubmitting ? "Adding..." : "Add Player to Scoreboard"}
         </Button>
       </form>
     </Form>
