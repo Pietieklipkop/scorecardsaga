@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { timeStringToHundredths, formatScore } from "@/lib/utils";
 import { sendWhatsappMessage } from "@/app/actions/whatsapp";
+import { useEvent } from "@/context/event-context";
 
 interface UpdateScoreFormProps {
   player: Player;
@@ -30,6 +31,7 @@ interface UpdateScoreFormProps {
 
 export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProps) {
   const { toast } = useToast();
+  const { currentEvent } = useEvent();
 
   const formSchema = z.object({
     score: z.string()
@@ -67,17 +69,27 @@ You’ve been challenged and knocked off your spot! 💥 True *excellence* isn�
 _Fairtree. Values-driven Investing._`;
     try {
       // Send via Twilio
-      await sendWhatsappMessage(dethronedPlayer.phone, 'leaderboard');
+      const result = await sendWhatsappMessage(dethronedPlayer.phone, 'leaderboard');
 
       // Log to Firestore for simulation
-      await addDoc(collection(db, "whatsapp_messaging"), {
-        phone: dethronedPlayer.phone,
-        name: dethronedPlayer.name,
-        surname: dethronedPlayer.surname,
-        message: message,
-        timestamp: new Date(),
-        sent: true, // Mark as sent
-      });
+      if (currentEvent) {
+        await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
+          phone: dethronedPlayer.phone,
+          name: dethronedPlayer.name,
+          surname: dethronedPlayer.surname,
+          message: message,
+          timestamp: new Date(),
+          sent: result.success,
+        });
+      }
+
+      if (!result.success) {
+        toast({
+          variant: "destructive",
+          title: "WhatsApp Error",
+          description: `Failed to send dethrone message to ${dethronedPlayer.name}: ${result.error}`,
+        });
+      }
     } catch (error) {
       console.error("Error sending dethrone message:", error);
     }
@@ -95,11 +107,13 @@ _Fairtree. Values-driven Investing._`;
     }
 
     try {
-      const playerRef = doc(db, "players", player.id);
+      if (!currentEvent) throw new Error("No event selected");
+
+      const playerRef = doc(db, "events", currentEvent.id, "players", player.id);
       const newScoreInHundredths = timeStringToHundredths(data.score);
 
       // --- Start of proactive notification logic for updates ---
-      const playersRef = collection(db, "players");
+      const playersRef = collection(db, "events", currentEvent.id, "players");
       const q = query(playersRef, orderBy("score", "asc"));
       const querySnapshot = await getDocs(q);
       const originalPlayers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
@@ -135,9 +149,61 @@ _Fairtree. Values-driven Investing._`;
       const updatedPlayerRank = futurePlayers.findIndex(p => p.id === player.id);
 
       if (updatedPlayerRank < 3) {
-        await sendWhatsappMessage(player.phone, 'success');
+        const result = await sendWhatsappMessage(player.phone, 'success');
+
+        const message = `🔥 Fairtree leaderboard update
+
+Well done! 🎉 You’ve made it onto the leaderboard. Consistency is key - let’s see if you can hold your spot and prove your excellence.
+
+Fairtree. Values-driven Investing.`;
+
+        // Log to Firestore for simulation
+        if (currentEvent) {
+          await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
+            phone: player.phone,
+            name: player.name,
+            surname: player.surname,
+            message: message,
+            timestamp: new Date(),
+            sent: result.success,
+          });
+        }
+
+        if (!result.success) {
+          toast({
+            variant: "destructive",
+            title: "WhatsApp Error",
+            description: `Failed to send success message to ${player.name}: ${result.error}`,
+          });
+        }
       } else {
-        await sendWhatsappMessage(player.phone, 'failure');
+        const result = await sendWhatsappMessage(player.phone, 'failure');
+
+        const message = `🏃‍ ️ Fairtree fastest hands challenge
+
+Thanks for giving it a go! ⏱️ This time you didn’t make the leaderboard, but remember, excellence isn’t found in a moment, it’s about showing up repeatedly. Try again and see if you can beat your best!
+
+Fairtree. Values-driven Investing.`;
+
+        // Log to Firestore for simulation
+        if (currentEvent) {
+          await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
+            phone: player.phone,
+            name: player.name,
+            surname: player.surname,
+            message: message,
+            timestamp: new Date(),
+            sent: result.success,
+          });
+        }
+
+        if (!result.success) {
+          toast({
+            variant: "destructive",
+            title: "WhatsApp Error",
+            description: `Failed to send failure message to ${player.name}: ${result.error}`,
+          });
+        }
       }
 
       await updateDoc(playerRef, {

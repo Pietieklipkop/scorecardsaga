@@ -57,8 +57,9 @@ You’ve been challenged and knocked off your spot! 💥 True *excellence* isn�
 _Fairtree. Values-driven Investing._`;
     try {
       // Send via Twilio
-      await sendWhatsappMessage(player.phone, 'leaderboard');
+      const result = await sendWhatsappMessage(player.phone, 'leaderboard');
 
+      console.log('Sent leaderboard message to:', player.phone, currentEvent);
       // Log to Firestore for simulation
       if (currentEvent) {
         await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
@@ -67,8 +68,16 @@ _Fairtree. Values-driven Investing._`;
           surname: player.surname,
           message: message,
           timestamp: new Date(),
-          sent: true, // Mark as sent since we are sending it via Twilio now
+          sent: result.success,
         });
+
+        if (!result.success) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to send WhatsApp message.",
+          });
+        }
       }
     } catch (error) {
       console.error("Error sending dethrone message:", error);
@@ -106,11 +115,64 @@ _Fairtree. Values-driven Investing._`;
 
       // Send success/failure message to the new player
       if (newPlayerPotentialRank < 3) {
+
         // Success message
-        await sendWhatsappMessage(data.phone, 'success');
+        const result = await sendWhatsappMessage(data.phone, 'success');
+
+        const message = `🔥 Fairtree leaderboard update
+
+Well done! 🎉 You’ve made it onto the leaderboard. Consistency is key - let’s see if you can hold your spot and prove your excellence.
+
+Fairtree. Values-driven Investing.`;
+
+        // Log to Firestore for simulation
+        if (currentEvent) {
+          await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
+            phone: data.phone,
+            name: data.name,
+            surname: data.surname,
+            message,
+            timestamp: new Date(),
+            sent: result.success,
+          });
+        }
+
+        if (!result.success) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to send WhatsApp message.",
+          });
+        }
       } else {
         // Failure message
-        await sendWhatsappMessage(data.phone, 'failure');
+        const result = await sendWhatsappMessage(data.phone, 'failure');
+
+        const message = `🏃‍ ️ Fairtree fastest hands challenge
+
+Thanks for giving it a go! ⏱️ This time you didn’t make the leaderboard, but remember, excellence isn’t found in a moment, it’s about showing up repeatedly. Try again and see if you can beat your best!
+
+Fairtree. Values-driven Investing.`;
+
+        // Log to Firestore for simulation
+        if (currentEvent) {
+          await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
+            phone: data.phone,
+            name: data.name,
+            surname: data.surname,
+            message,
+            timestamp: new Date(),
+            sent: result.success,
+          });
+        }
+
+        if (!result.success) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to send WhatsApp message.",
+          });
+        }
       }
 
       if (newPlayerPotentialRank < 3) {
