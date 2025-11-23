@@ -4,12 +4,14 @@
 import type { Player } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Download, Projector, UserPlus } from "lucide-react";
+import { useEvent } from "@/context/event-context";
 
 interface FooterProps {
   players: Player[];
 }
 
 export function Footer({ players }: FooterProps) {
+  const { currentEvent } = useEvent();
 
   const exportToCSV = () => {
     const headers = ["Name", "Surname", "Email", "Phone", "Score", "Attempts"];
@@ -22,8 +24,8 @@ export function Footer({ players }: FooterProps) {
       player.attempts ?? 1,
     ]);
 
-    let csvContent = "data:text/csv;charset=utf-8," 
-      + headers.join(",") + "\n" 
+    let csvContent = "data:text/csv;charset=utf-8,"
+      + headers.join(",") + "\n"
       + rows.map(e => e.join(",")).join("\n");
 
     const encodedUri = encodeURI(csvContent);
@@ -36,11 +38,13 @@ export function Footer({ players }: FooterProps) {
   };
 
   const openScoreboard = () => {
-    window.open("/scoreboard", "_blank");
+    const url = currentEvent ? `/scoreboard?event=${currentEvent.id}` : "/scoreboard";
+    window.open(url, "_blank");
   };
-  
+
   const openAddPlayer = () => {
-    window.open("/add-player", "_blank");
+    const url = currentEvent ? `/add-player?event=${currentEvent.id}` : "/add-player";
+    window.open(url, "_blank");
   };
 
   const getMostAttemptedPlayer = () => {
@@ -61,12 +65,12 @@ export function Footer({ players }: FooterProps) {
     <footer className="w-full border-t bg-background">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} Scoreboard Saga. All rights reserved.</p>
-            {mostAttemptedPlayer && (
-              <p className="text-xs mt-1">
-                Most Attempts: <span className="font-semibold">{mostAttemptedPlayer.name} {mostAttemptedPlayer.surname}</span> with {mostAttemptedPlayer.attempts} attempts.
-              </p>
-            )}
+          <p>&copy; {new Date().getFullYear()} Scoreboard Saga. All rights reserved.</p>
+          {mostAttemptedPlayer && (
+            <p className="text-xs mt-1">
+              Most Attempts: <span className="font-semibold">{mostAttemptedPlayer.name} {mostAttemptedPlayer.surname}</span> with {mostAttemptedPlayer.attempts} attempts.
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={openAddPlayer}>

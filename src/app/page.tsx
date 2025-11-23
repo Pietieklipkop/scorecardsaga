@@ -10,6 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { useAuth } from "@/hooks/use-auth";
+import { useEvent } from "@/context/event-context";
+import { EventSelector } from "@/components/event-selector";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -38,6 +40,7 @@ import { ChevronsUpDown } from "lucide-react";
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
+  const { currentEvent, loading: eventLoading } = useEvent();
   const { toast } = useToast();
   const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
@@ -66,16 +69,16 @@ export default function Home() {
     setPlayerToDelete(player);
     setIsDeleteDialogOpen(true);
   };
-  
+
   const handlePlayerClick = (player: Player) => {
     setPlayerForDetails(player);
     setIsPlayerDetailsOpen(true);
   };
 
   const confirmDeletePlayer = async () => {
-    if (!playerToDelete || !playerToDelete.id) return;
+    if (!playerToDelete || !playerToDelete.id || !currentEvent) return;
     try {
-      await deleteDoc(doc(db, "players", playerToDelete.id));
+      await deleteDoc(doc(db, "events", currentEvent.id, "players", playerToDelete.id));
       toast({
         title: "Player Deleted",
         description: `${playerToDelete.name} ${playerToDelete.surname} has been removed.`,
@@ -100,8 +103,8 @@ export default function Home() {
   }, [user, authLoading, router]);
 
   useEffect(() => {
-    if (user) {
-      const qPlayers = query(collection(db, "players"), orderBy("score", "asc"));
+    if (user && currentEvent) {
+      const qPlayers = query(collection(db, "events", currentEvent.id, "players"), orderBy("score", "asc"));
       const unsubscribePlayers = onSnapshot(qPlayers, (querySnapshot) => {
         const playersData: Player[] = [];
         querySnapshot.forEach((doc) => {
@@ -111,13 +114,13 @@ export default function Home() {
         setLoading(false);
       });
 
-      const qWhatsapp = query(collection(db, "whatsapp_messaging"), orderBy("timestamp", "desc"));
+      const qWhatsapp = query(collection(db, "events", currentEvent.id, "whatsapp_messaging"), orderBy("timestamp", "desc"));
       const unsubscribeWhatsapp = onSnapshot(qWhatsapp, (querySnapshot) => {
         const messagesData: WhatsappMessage[] = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          messagesData.push({ 
-            id: doc.id, 
+          messagesData.push({
+            id: doc.id,
             ...data,
             timestamp: data.timestamp?.toDate() // Convert Firestore Timestamp to JS Date
           } as WhatsappMessage);
@@ -129,8 +132,12 @@ export default function Home() {
         unsubscribePlayers();
         unsubscribeWhatsapp();
       };
+    } else if (user && !currentEvent && !eventLoading) {
+      setPlayers([]);
+      setWhatsappMessages([]);
+      setLoading(false);
     }
-  }, [user]);
+  }, [user, currentEvent, eventLoading]);
 
   if (authLoading || !user) {
     return (
@@ -148,6 +155,9 @@ export default function Home() {
   return (
     <>
       <Header />
+      <div className="container mx-auto px-4 py-4 flex justify-end">
+        <EventSelector />
+      </div>
       <main className="container mx-auto px-4 py-8 md:py-12 flex-grow">
         <div className="w-full">
           {loading ? (
@@ -159,9 +169,9 @@ export default function Home() {
               <Skeleton className="h-12 w-full" />
             </div>
           ) : (
-            <Leaderboard 
-              players={players} 
-              onUpdateScore={handleUpdateScoreClick} 
+            <Leaderboard
+              players={players}
+              onUpdateScore={handleUpdateScoreClick}
               onDeletePlayer={handleDeleteClick}
               onPlayerClick={handlePlayerClick}
             />
@@ -169,11 +179,11 @@ export default function Home() {
         </div>
         <div className="mt-12">
           <Collapsible
-              open={isWhatsappOpen}
-              onOpenChange={setIsWhatsappOpen}
-            >
-            <WhatsappSimulation 
-              messages={whatsappMessages} 
+            open={isWhatsappOpen}
+            onOpenChange={setIsWhatsappOpen}
+          >
+            <WhatsappSimulation
+              messages={whatsappMessages}
               collapsibleTrigger={
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="sm" className="w-9 p-0">
@@ -200,8 +210,8 @@ export default function Home() {
           {selectedPlayer && <UpdateScoreForm player={selectedPlayer} onFormSubmitted={handleUpdateFormSubmitted} />}
         </DialogContent>
       </Dialog>
-      
-      <PlayerDetailsModal 
+
+      <PlayerDetailsModal
         player={playerForDetails}
         isOpen={isPlayerDetailsOpen}
         onOpenChange={setIsPlayerDetailsOpen}

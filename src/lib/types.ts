@@ -22,7 +22,7 @@ export const playerSchema = z.object({
   phone: z.string()
     .min(12, "Phone number must be at least 12 characters long.")
     .refine((val) => val.startsWith('+27'), {
-        message: "Phone number must start with the country code +27.",
+      message: "Phone number must start with the country code +27.",
     }),
   score: z.coerce.number().int().min(0, "Score must be a positive number"),
   company: z.string().optional().nullable(),
@@ -33,19 +33,28 @@ export const playerSchema = z.object({
 });
 
 export const addPlayerFormSchema = playerSchema.omit({ score: true, attempts: true }).extend({
-    score: timeStringSchema,
+  score: timeStringSchema,
 });
 export type AddPlayerFormData = z.infer<typeof addPlayerFormSchema>;
 
 
 export type Player = z.infer<typeof playerSchema>;
 
+
 export interface WhatsappMessage {
-    id: string;
-    phone: string;
-    name: string;
-    surname: string;
-    message: string;
-    timestamp: Date;
-    sent: boolean;
+  id: string;
+  phone: string;
+  name: string;
+  surname: string;
+  message: string;
+  timestamp: Date;
+  sent: boolean;
 }
+
+export interface Event {
+  id: string;
+  name: string;
+  createdAt: Date;
+  isActive: boolean;
+}
+

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
+import { EventProvider } from "@/context/event-context";
 
 export const metadata: Metadata = {
   title: "Scoreboard Saga",
@@ -22,10 +23,12 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased h-full bg-background flex flex-col">
         <AuthProvider>
-          <div className="flex-grow flex flex-col">
-            {children}
-          </div>
-          <Toaster />
+          <EventProvider>
+            <div className="flex-grow flex flex-col">
+              {children}
+            </div>
+            <Toaster />
+          </EventProvider>
         </AuthProvider>
       </body>
     </html>

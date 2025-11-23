@@ -8,6 +8,7 @@ import { db } from "@/lib/firebase";
 
 import type { Player } from "@/lib/types";
 import { addPlayerFormSchema, type AddPlayerFormData } from "@/lib/types";
+import { useEvent } from "@/context/event-context";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -32,6 +33,7 @@ interface AddPlayerFormProps {
 
 export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
   const { toast } = useToast();
+  const { currentEvent } = useEvent();
   const form = useForm<AddPlayerFormData>({
     resolver: zodResolver(addPlayerFormSchema),
     defaultValues: {
@@ -58,14 +60,16 @@ _Fairtree. Values-driven Investing._`;
       await sendWhatsappMessage(player.phone, 'leaderboard');
 
       // Log to Firestore for simulation
-      await addDoc(collection(db, "whatsapp_messaging"), {
-        phone: player.phone,
-        name: player.name,
-        surname: player.surname,
-        message: message,
-        timestamp: new Date(),
-        sent: true, // Mark as sent since we are sending it via Twilio now
-      });
+      if (currentEvent) {
+        await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
+          phone: player.phone,
+          name: player.name,
+          surname: player.surname,
+          message: message,
+          timestamp: new Date(),
+          sent: true, // Mark as sent since we are sending it via Twilio now
+        });
+      }
     } catch (error) {
       console.error("Error sending dethrone message:", error);
     }
@@ -84,7 +88,16 @@ _Fairtree. Values-driven Investing._`;
       };
 
       // --- Start of new proactive notification logic ---
-      const playersRef = collection(db, "players");
+      if (!currentEvent) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "No event selected. Please select an event first.",
+        });
+        return;
+      }
+
+      const playersRef = collection(db, "events", currentEvent.id, "players");
       const q = query(playersRef, orderBy("score", "asc"));
       const querySnapshot = await getDocs(q);
       const currentPlayers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
@@ -109,7 +122,7 @@ _Fairtree. Values-driven Investing._`;
       // --- End of new proactive notification logic ---
 
 
-      await addDoc(collection(db, "players"), finalPlayerData);
+      await addDoc(collection(db, "events", currentEvent.id, "players"), finalPlayerData);
 
       // Only send to Zapier in production
       if (process.env.NODE_ENV == 'production') {
