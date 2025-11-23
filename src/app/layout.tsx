@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -24,14 +25,14 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased h-full bg-background flex flex-col">
         <AuthProvider>
-          <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
-            <EventProvider>
+          <EventProvider>
+            <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
               <div className="flex-grow flex flex-col">
                 {children}
               </div>
-              <Toaster />
-            </EventProvider>
-          </Suspense>
+            </Suspense>
+            <Toaster />
+          </EventProvider>
         </AuthProvider>
       </body>
     </html>

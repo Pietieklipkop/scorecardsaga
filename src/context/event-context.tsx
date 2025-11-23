@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, Suspense } from "react";
 import { collection, query, onSnapshot, orderBy, addDoc, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Event } from "@/lib/types";
@@ -16,13 +17,54 @@ interface EventContextType {
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
+// This component contains the client-side logic that uses useSearchParams
+function EventProviderContent({ children }: { children: React.ReactNode }) {
+    const context = useContext(EventContext);
+    if (!context) {
+        throw new Error("EventProviderContent must be used within an EventProvider");
+    }
+    const { events, loading, currentEvent, setCurrentEvent } = context as any;
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        if (!loading && events.length > 0) {
+            const eventIdFromUrl = searchParams.get("event");
+
+            if (eventIdFromUrl) {
+                const foundEvent = events.find((e: Event) => e.id === eventIdFromUrl);
+                if (foundEvent && foundEvent.id !== currentEvent?.id) {
+                    setCurrentEvent(foundEvent);
+                    localStorage.setItem("scorecardsaga_current_event_id", eventIdFromUrl);
+                    return;
+                }
+            }
+
+            const storedEventId = localStorage.getItem("scorecardsaga_current_event_id");
+            if (storedEventId) {
+                const foundEvent = events.find((e: Event) => e.id === storedEventId);
+                if (foundEvent && foundEvent.id !== currentEvent?.id) {
+                    setCurrentEvent(foundEvent);
+                    return;
+                }
+            }
+            
+            if (!currentEvent) {
+                setCurrentEvent(events[0]);
+            }
+        } else if (!loading && events.length === 0) {
+            setCurrentEvent(null);
+        }
+    }, [loading, events, searchParams, currentEvent, setCurrentEvent]);
+
+    return <>{children}</>;
+}
+
+
 export function EventProvider({ children }: { children: React.ReactNode }) {
     const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
     const [events, setEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(true);
-    const searchParams = useSearchParams();
 
-    // Load events
     useEffect(() => {
         const q = query(collection(db, "events"), orderBy("createdAt", "desc"));
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -38,43 +80,13 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
             });
             setEvents(eventsData);
             setLoading(false);
+        }, (error) => {
+            console.error("Error fetching events:", error);
+            setLoading(false);
         });
 
         return () => unsubscribe();
     }, []);
-
-    // Initialize current event from URL param, localStorage or default to first available
-    useEffect(() => {
-        if (!loading && events.length > 0) {
-            const eventIdFromUrl = searchParams.get("event");
-
-            if (eventIdFromUrl) {
-                const foundEvent = events.find((e) => e.id === eventIdFromUrl);
-                if (foundEvent) {
-                    setCurrentEvent(foundEvent);
-                    // Also update local storage so it persists if they navigate away and back without the param
-                    localStorage.setItem("scorecardsaga_current_event_id", eventIdFromUrl);
-                    return;
-                }
-            }
-
-            const storedEventId = localStorage.getItem("scorecardsaga_current_event_id");
-            if (storedEventId) {
-                const foundEvent = events.find((e) => e.id === storedEventId);
-                if (foundEvent) {
-                    setCurrentEvent(foundEvent);
-                    return;
-                }
-            }
-            // If no stored event or stored event not found, default to the most recent one
-            // But only if we haven't selected one yet (to avoid overriding user choice on re-renders if logic changes)
-            if (!currentEvent) {
-                setCurrentEvent(events[0]);
-            }
-        } else if (!loading && events.length === 0) {
-            setCurrentEvent(null);
-        }
-    }, [loading, events, currentEvent, searchParams]);
 
     const createEvent = async (name: string) => {
         try {
@@ -83,7 +95,6 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
                 createdAt: Timestamp.now(),
                 isActive: true,
             });
-            // Automatically switch to the new event
             switchEvent(docRef.id);
         } catch (error) {
             console.error("Error creating event:", error);
@@ -99,9 +110,13 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const value = { currentEvent, events, loading, createEvent, switchEvent, setCurrentEvent };
+
     return (
-        <EventContext.Provider value={{ currentEvent, events, loading, createEvent, switchEvent }}>
-            {children}
+        <EventContext.Provider value={value}>
+            <EventProviderContent>
+                {children}
+            </EventProviderContent>
         </EventContext.Provider>
     );
 }
