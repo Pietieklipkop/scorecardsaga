@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
 import { EventProvider } from "@/context/event-context";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Scoreboard Saga",
@@ -23,12 +24,14 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased h-full bg-background flex flex-col">
         <AuthProvider>
-          <EventProvider>
-            <div className="flex-grow flex flex-col">
-              {children}
-            </div>
-            <Toaster />
-          </EventProvider>
+          <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
+            <EventProvider>
+              <div className="flex-grow flex flex-col">
+                {children}
+              </div>
+              <Toaster />
+            </EventProvider>
+          </Suspense>
         </AuthProvider>
       </body>
     </html>
