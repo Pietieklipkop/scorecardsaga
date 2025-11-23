@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest"
+    "test": "vitest",
+    "emulators": "firebase emulators:start --import=./.firebase/saved-data/ --export-on-exit"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",

@@ -42,9 +42,18 @@ export async function sendWhatsappMessage(
         return { success: false, error: 'Template configuration error' };
     }
 
-    const client = twilio(accountSid, authToken);
 
     try {
+        // If local development environment, just console.log instead of sending WhatsApp
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('Sending WhatsApp message to:', to);
+            console.log('Template SID:', contentSid);
+            console.log('Variables:', variables);
+            return { success: true, messageSid: 'test-message-sid' };
+        }
+
+        const client = twilio(accountSid, authToken);
+
         // Ensure phone number is in the correct format for Twilio (whatsapp:+E.164)
         // We assume 'to' is already E.164 (e.g. +2782...)
         const formattedTo = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
