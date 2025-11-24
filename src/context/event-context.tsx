@@ -47,7 +47,7 @@ function EventProviderContent({ children }: { children: React.ReactNode }) {
                     return;
                 }
             }
-            
+
             if (!currentEvent) {
                 setCurrentEvent(events[0]);
             }
@@ -114,9 +114,11 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
 
     return (
         <EventContext.Provider value={value}>
-            <EventProviderContent>
-                {children}
-            </EventProviderContent>
+            <Suspense fallback={null}>
+                <EventProviderContent>
+                    {children}
+                </EventProviderContent>
+            </Suspense>
         </EventContext.Provider>
     );
 }
