@@ -8,6 +8,7 @@ import type { Player } from "@/lib/types";
 import { Leaderboard } from "@/components/leaderboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEvent } from "@/context/event-context";
+import Image from "next/image";
 
 export default function ScoreboardPage() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -38,7 +39,7 @@ export default function ScoreboardPage() {
     >
       <div className="container mx-auto px-4 py-8 md:py-12 flex-grow flex flex-col">
         <div className="flex justify-between items-center mb-6 p-4 rounded-lg">
-          <h1 className="text-3xl font-bold text-white font-raleway">INN8 LEADERBOARD</h1>
+          <Image src="/RGB_Full_black_transparent.png" alt="Company Logo" width={200} height={50} />
           <h2 className="hidden md:block text-5xl font-bold text-white font-recife">Speed Test Challenge</h2>
         </div>
         {loading ? (
