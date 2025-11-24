@@ -19,6 +19,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "./ui/checkbox";
@@ -30,6 +37,18 @@ import { sendWhatsappMessage } from "@/app/actions/whatsapp";
 interface AddPlayerFormProps {
   onFormSubmitted?: () => void;
 }
+
+const SOUTH_AFRICAN_PROVINCES = [
+  "Eastern Cape",
+  "Free State",
+  "Gauteng",
+  "KwaZulu-Natal",
+  "Limpopo",
+  "Mpumalanga",
+  "Northern Cape",
+  "North West",
+  "Western Cape",
+] as const;
 
 export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
   const { toast } = useToast();
@@ -43,6 +62,7 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
       phone: "+27",
       score: "0",
       company: "",
+      region: "",
       termsAccepted: false,
     },
   });
@@ -198,6 +218,7 @@ Fairtree. Values-driven Investing.`;
               "Email": data.email,
               "Phone Number": data.phone,
               "Company": data.company,
+              "Region": data.region,
               "Event Tag": "INN825",
             }),
           });
@@ -299,6 +320,30 @@ Fairtree. Values-driven Investing.`;
               <FormControl>
                 <Input placeholder="Acme Inc." {...field} value={field.value ?? ''} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="region"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Region</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a region" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {SOUTH_AFRICAN_PROVINCES.map((province) => (
+                    <SelectItem key={province} value={province}>
+                      {province}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

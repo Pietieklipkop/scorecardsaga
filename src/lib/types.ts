@@ -26,6 +26,7 @@ export const playerSchema = z.object({
     }),
   score: z.coerce.number().int().min(0, "Score must be a positive number"),
   company: z.string().optional().nullable(),
+  region: z.string().min(1, "Region is required"),
   termsAccepted: z.boolean().refine((val) => val === true, {
     message: "You must accept the terms and conditions.",
   }),
