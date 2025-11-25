@@ -39,7 +39,7 @@ export default function ScoreboardPage() {
     >
       <div className="container mx-auto px-4 py-8 md:py-12 flex-grow flex flex-col">
         <div className="flex justify-between items-center mb-6 p-4 rounded-lg">
-          <Image src="/RGB_Full_black_transparent.png" alt="Company Logo" width={200} height={50} />
+          <Image src="/RGB_Full_black_transparent.png" alt="Company Logo" width={400} height={150} />
           <h2 className="hidden md:block text-5xl font-bold text-white font-recife">Speed Test Challenge</h2>
         </div>
         {loading ? (

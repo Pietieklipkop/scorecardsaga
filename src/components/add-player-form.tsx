@@ -60,7 +60,7 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
       surname: "",
       email: "",
       phone: "+27",
-      score: "0",
+      score: "",
       company: "",
       region: "",
       termsAccepted: false,

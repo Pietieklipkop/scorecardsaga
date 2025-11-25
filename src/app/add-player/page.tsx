@@ -7,16 +7,15 @@ import { Trophy } from 'lucide-react';
 
 export default function AddPlayerPage() {
   const handleFormSubmitted = () => {
-    // When the form is on its own page, we want to navigate away
-    // to an external site after submission.
-    window.location.href = 'https://fairtree.com';
+    // Refresh the page after submitted
+    window.location.reload();
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-6">
-            <Trophy className="h-12 w-12 text-primary" />
+          <Trophy className="h-12 w-12 text-primary" />
         </div>
         <Card>
           <CardHeader>
