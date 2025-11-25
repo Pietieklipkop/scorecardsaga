@@ -134,66 +134,66 @@ _Fairtree. Values-driven Investing._`;
       const newPlayerPotentialRank = currentPlayers.filter(p => p.score < scoreInHundredths).length;
 
       // Send success/failure message to the new player
-      if (newPlayerPotentialRank < 3) {
+      //       if (newPlayerPotentialRank < 3) {
 
-        // Success message
-        const result = await sendWhatsappMessage(data.phone, 'success');
+      //         // Success message
+      //         const result = await sendWhatsappMessage(data.phone, 'success');
 
-        const message = `🔥 Fairtree leaderboard update
+      //         const message = `🔥 Fairtree leaderboard update
 
-Well done! 🎉 You’ve made it onto the leaderboard. Consistency is key - let’s see if you can hold your spot and prove your excellence.
+      // Well done! 🎉 You’ve made it onto the leaderboard. Consistency is key - let’s see if you can hold your spot and prove your excellence.
 
-Fairtree. Values-driven Investing.`;
+      // Fairtree. Values-driven Investing.`;
 
-        // Log to Firestore for simulation
-        if (currentEvent) {
-          await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
-            phone: data.phone,
-            name: data.name,
-            surname: data.surname,
-            message,
-            timestamp: new Date(),
-            sent: result.success,
-          });
-        }
+      //         // Log to Firestore for simulation
+      //         if (currentEvent) {
+      //           await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
+      //             phone: data.phone,
+      //             name: data.name,
+      //             surname: data.surname,
+      //             message,
+      //             timestamp: new Date(),
+      //             sent: result.success,
+      //           });
+      //         }
 
-        if (!result.success) {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to send WhatsApp message.",
-          });
-        }
-      } else {
-        // Failure message
-        const result = await sendWhatsappMessage(data.phone, 'failure');
+      //         if (!result.success) {
+      //           toast({
+      //             variant: "destructive",
+      //             title: "Error",
+      //             description: "Failed to send WhatsApp message.",
+      //           });
+      //         }
+      //       } else {
+      //         // Failure message
+      //         const result = await sendWhatsappMessage(data.phone, 'failure');
 
-        const message = `🏃‍ ️ Fairtree fastest hands challenge
+      //         const message = `🏃‍ ️ Fairtree fastest hands challenge
 
-Thanks for giving it a go! ⏱️ This time you didn’t make the leaderboard, but remember, excellence isn’t found in a moment, it’s about showing up repeatedly. Try again and see if you can beat your best!
+      // Thanks for giving it a go! ⏱️ This time you didn’t make the leaderboard, but remember, excellence isn’t found in a moment, it’s about showing up repeatedly. Try again and see if you can beat your best!
 
-Fairtree. Values-driven Investing.`;
+      // Fairtree. Values-driven Investing.`;
 
-        // Log to Firestore for simulation
-        if (currentEvent) {
-          await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
-            phone: data.phone,
-            name: data.name,
-            surname: data.surname,
-            message,
-            timestamp: new Date(),
-            sent: result.success,
-          });
-        }
+      //         // Log to Firestore for simulation
+      //         if (currentEvent) {
+      //           await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
+      //             phone: data.phone,
+      //             name: data.name,
+      //             surname: data.surname,
+      //             message,
+      //             timestamp: new Date(),
+      //             sent: result.success,
+      //           });
+      //         }
 
-        if (!result.success) {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to send WhatsApp message.",
-          });
-        }
-      }
+      //         if (!result.success) {
+      //           toast({
+      //             variant: "destructive",
+      //             title: "Error",
+      //             description: "Failed to send WhatsApp message.",
+      //           });
+      //         }
+      //       }
 
       if (newPlayerPotentialRank < 3) {
         const playersToNotify = currentPlayers.slice(newPlayerPotentialRank, 3);

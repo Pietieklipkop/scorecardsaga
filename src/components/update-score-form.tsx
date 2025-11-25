@@ -148,63 +148,63 @@ _Fairtree. Values-driven Investing._`;
       // Calculate their new rank in the hypothetical future leaderboard
       const updatedPlayerRank = futurePlayers.findIndex(p => p.id === player.id);
 
-      if (updatedPlayerRank < 3) {
-        const result = await sendWhatsappMessage(player.phone, 'success');
+      //       if (updatedPlayerRank < 3) {
+      //         const result = await sendWhatsappMessage(player.phone, 'success');
 
-        const message = `🔥 Fairtree leaderboard update
+      //         const message = `🔥 Fairtree leaderboard update
 
-Well done! 🎉 You’ve made it onto the leaderboard. Consistency is key - let’s see if you can hold your spot and prove your excellence.
+      // Well done! 🎉 You’ve made it onto the leaderboard. Consistency is key - let’s see if you can hold your spot and prove your excellence.
 
-Fairtree. Values-driven Investing.`;
+      // Fairtree. Values-driven Investing.`;
 
-        // Log to Firestore for simulation
-        if (currentEvent) {
-          await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
-            phone: player.phone,
-            name: player.name,
-            surname: player.surname,
-            message: message,
-            timestamp: new Date(),
-            sent: result.success,
-          });
-        }
+      //         // Log to Firestore for simulation
+      //         if (currentEvent) {
+      //           await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
+      //             phone: player.phone,
+      //             name: player.name,
+      //             surname: player.surname,
+      //             message: message,
+      //             timestamp: new Date(),
+      //             sent: result.success,
+      //           });
+      //         }
 
-        if (!result.success) {
-          toast({
-            variant: "destructive",
-            title: "WhatsApp Error",
-            description: `Failed to send success message to ${player.name}: ${result.error}`,
-          });
-        }
-      } else {
-        const result = await sendWhatsappMessage(player.phone, 'failure');
+      //         if (!result.success) {
+      //           toast({
+      //             variant: "destructive",
+      //             title: "WhatsApp Error",
+      //             description: `Failed to send success message to ${player.name}: ${result.error}`,
+      //           });
+      //         }
+      //       } else {
+      //         const result = await sendWhatsappMessage(player.phone, 'failure');
 
-        const message = `🏃‍ ️ Fairtree fastest hands challenge
+      //         const message = `🏃‍ ️ Fairtree fastest hands challenge
 
-Thanks for giving it a go! ⏱️ This time you didn’t make the leaderboard, but remember, excellence isn’t found in a moment, it’s about showing up repeatedly. Try again and see if you can beat your best!
+      // Thanks for giving it a go! ⏱️ This time you didn’t make the leaderboard, but remember, excellence isn’t found in a moment, it’s about showing up repeatedly. Try again and see if you can beat your best!
 
-Fairtree. Values-driven Investing.`;
+      // Fairtree. Values-driven Investing.`;
 
-        // Log to Firestore for simulation
-        if (currentEvent) {
-          await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
-            phone: player.phone,
-            name: player.name,
-            surname: player.surname,
-            message: message,
-            timestamp: new Date(),
-            sent: result.success,
-          });
-        }
+      //         // Log to Firestore for simulation
+      //         if (currentEvent) {
+      //           await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
+      //             phone: player.phone,
+      //             name: player.name,
+      //             surname: player.surname,
+      //             message: message,
+      //             timestamp: new Date(),
+      //             sent: result.success,
+      //           });
+      //         }
 
-        if (!result.success) {
-          toast({
-            variant: "destructive",
-            title: "WhatsApp Error",
-            description: `Failed to send failure message to ${player.name}: ${result.error}`,
-          });
-        }
-      }
+      //         if (!result.success) {
+      //           toast({
+      //             variant: "destructive",
+      //             title: "WhatsApp Error",
+      //             description: `Failed to send failure message to ${player.name}: ${result.error}`,
+      //           });
+      //         }
+      //       }
 
       await updateDoc(playerRef, {
         score: newScoreInHundredths,
