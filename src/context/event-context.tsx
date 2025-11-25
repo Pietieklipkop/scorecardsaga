@@ -11,7 +11,7 @@ interface EventContextType {
     currentEvent: Event | null;
     events: Event[];
     loading: boolean;
-    createEvent: (name: string) => Promise<void>;
+    createEvent: (name: string, eventTag: string) => Promise<void>;
     switchEvent: (eventId: string) => void;
 }
 
@@ -74,6 +74,7 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
                 eventsData.push({
                     id: doc.id,
                     name: data.name,
+                    eventTag: data.eventTag,
                     createdAt: data.createdAt?.toDate(),
                     isActive: data.isActive,
                 });
@@ -88,10 +89,11 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
         return () => unsubscribe();
     }, []);
 
-    const createEvent = async (name: string) => {
+    const createEvent = async (name: string, eventTag: string) => {
         try {
             const docRef = await addDoc(collection(db, "events"), {
                 name,
+                eventTag,
                 createdAt: Timestamp.now(),
                 isActive: true,
             });

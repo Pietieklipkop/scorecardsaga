@@ -219,7 +219,7 @@ Fairtree. Values-driven Investing.`;
               "Phone Number": data.phone,
               "Company": data.company,
               "Region": data.region,
-              "Event Tag": "INN825",
+              "Event Tag": currentEvent.eventTag || "",
             }),
           });
         } catch (webhookError) {

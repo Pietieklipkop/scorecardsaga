@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
     name: z.string().min(1, "Event name is required"),
+    eventTag: z.string().min(1, "Event tag is required"),
 });
 
 interface CreateEventDialogProps {
@@ -43,13 +44,14 @@ export function CreateEventDialog({ open, onOpenChange }: CreateEventDialogProps
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
+            eventTag: "",
         },
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsSubmitting(true);
         try {
-            await createEvent(values.name);
+            await createEvent(values.name, values.eventTag);
             toast({
                 title: "Event Created",
                 description: `Event "${values.name}" has been created and selected.`,
@@ -86,6 +88,19 @@ export function CreateEventDialog({ open, onOpenChange }: CreateEventDialogProps
                                     <FormLabel>Event Name</FormLabel>
                                     <FormControl>
                                         <Input placeholder="e.g., Summer Cup 2024" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="eventTag"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Event Tag</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="e.g., INN825" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

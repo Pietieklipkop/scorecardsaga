@@ -55,6 +55,7 @@ export interface WhatsappMessage {
 export interface Event {
   id: string;
   name: string;
+  eventTag?: string;
   createdAt: Date;
   isActive: boolean;
 }
