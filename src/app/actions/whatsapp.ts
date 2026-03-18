@@ -1,3 +1,4 @@
+
 'use server';
 
 import twilio from 'twilio';
@@ -54,9 +55,14 @@ export async function sendWhatsappMessage(
 
         const client = twilio(accountSid, authToken);
 
+        // Convert local 10-digit number to E.164 if it starts with '0'
+        let destination = to;
+        if (to.startsWith('0') && to.length === 10) {
+            destination = `+27${to.substring(1)}`;
+        }
+
         // Ensure phone number is in the correct format for Twilio (whatsapp:+E.164)
-        // We assume 'to' is already E.164 (e.g. +2782...)
-        const formattedTo = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
+        const formattedTo = destination.startsWith('whatsapp:') ? destination : `whatsapp:${destination}`;
 
         const message = await client.messages.create({
             from: fromNumber,

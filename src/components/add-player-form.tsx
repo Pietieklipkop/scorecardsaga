@@ -59,7 +59,7 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
       name: "",
       surname: "",
       email: "",
-      phone: "+27",
+      phone: "0",
       score: "",
       company: "",
       region: "",
@@ -133,68 +133,6 @@ _Fairtree. Values-driven Investing._`;
 
       const newPlayerPotentialRank = currentPlayers.filter(p => p.score < scoreInHundredths).length;
 
-      // Send success/failure message to the new player
-      //       if (newPlayerPotentialRank < 3) {
-
-      //         // Success message
-      //         const result = await sendWhatsappMessage(data.phone, 'success');
-
-      //         const message = `🔥 Fairtree leaderboard update
-
-      // Well done! 🎉 You’ve made it onto the leaderboard. Consistency is key - let’s see if you can hold your spot and prove your excellence.
-
-      // Fairtree. Values-driven Investing.`;
-
-      //         // Log to Firestore for simulation
-      //         if (currentEvent) {
-      //           await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
-      //             phone: data.phone,
-      //             name: data.name,
-      //             surname: data.surname,
-      //             message,
-      //             timestamp: new Date(),
-      //             sent: result.success,
-      //           });
-      //         }
-
-      //         if (!result.success) {
-      //           toast({
-      //             variant: "destructive",
-      //             title: "Error",
-      //             description: "Failed to send WhatsApp message.",
-      //           });
-      //         }
-      //       } else {
-      //         // Failure message
-      //         const result = await sendWhatsappMessage(data.phone, 'failure');
-
-      //         const message = `🏃‍ ️ Fairtree fastest hands challenge
-
-      // Thanks for giving it a go! ⏱️ This time you didn’t make the leaderboard, but remember, excellence isn’t found in a moment, it’s about showing up repeatedly. Try again and see if you can beat your best!
-
-      // Fairtree. Values-driven Investing.`;
-
-      //         // Log to Firestore for simulation
-      //         if (currentEvent) {
-      //           await addDoc(collection(db, "events", currentEvent.id, "whatsapp_messaging"), {
-      //             phone: data.phone,
-      //             name: data.name,
-      //             surname: data.surname,
-      //             message,
-      //             timestamp: new Date(),
-      //             sent: result.success,
-      //           });
-      //         }
-
-      //         if (!result.success) {
-      //           toast({
-      //             variant: "destructive",
-      //             title: "Error",
-      //             description: "Failed to send WhatsApp message.",
-      //           });
-      //         }
-      //       }
-
       if (newPlayerPotentialRank < 3) {
         const playersToNotify = currentPlayers.slice(newPlayerPotentialRank, 3);
         for (const playerToNotify of playersToNotify) {
@@ -224,8 +162,6 @@ _Fairtree. Values-driven Investing._`;
           });
         } catch (webhookError) {
           console.error("Error sending data to Zapier webhook: ", webhookError);
-          // We don't want to block the user flow if the webhook fails,
-          // so we just log the error and continue.
         }
       } else {
         console.log("Not sending to Zapier in non-production environment");
@@ -302,10 +238,10 @@ _Fairtree. Values-driven Investing._`;
             <FormItem>
               <FormLabel>Phone Number</FormLabel>
               <FormControl>
-                <Input type="tel" placeholder="+27821234567" {...field} />
+                <Input type="tel" placeholder="0821234567" {...field} />
               </FormControl>
               <FormDescription>
-                Must be in international E.164 format (e.g. +27821234567).
+                Must be exactly 10 digits starting with 0.
               </FormDescription>
               <FormMessage />
             </FormItem>

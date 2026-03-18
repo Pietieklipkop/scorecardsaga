@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -11,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function TestWhatsappPage() {
     const { toast } = useToast();
-    const [phone, setPhone] = useState('+27');
+    const [phone, setPhone] = useState('0');
     const [template, setTemplate] = useState<'success' | 'failure' | 'leaderboard'>('success');
     const [loading, setLoading] = useState(false);
 
@@ -68,12 +69,12 @@ export default function TestWhatsappPage() {
                         <Input
                             id="phone"
                             type="tel"
-                            placeholder="+27..."
+                            placeholder="0821234567"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                         />
                         <p className="text-xs text-muted-foreground">
-                            Must be in E.164 format (e.g. +2782...)
+                            Must be exactly 10 digits starting with 0.
                         </p>
                     </div>
 
