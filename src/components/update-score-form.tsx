@@ -60,6 +60,7 @@ export function UpdateScoreForm({ player, onFormSubmitted }: UpdateScoreFormProp
   });
 
   const sendDethroneMessage = async (dethronedPlayer: Player) => {
+    if (!dethronedPlayer.phone) return;
     const message = `⚡ *Fairtree leaderboard update*
 
 You’ve been challenged and knocked off your spot! 💥 True *excellence* isn’t found at the finish line; it’s in coming back stronger. 

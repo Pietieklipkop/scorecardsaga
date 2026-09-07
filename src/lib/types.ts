@@ -19,9 +19,7 @@ export const playerSchema = z.object({
   name: z.string().min(1, "Name is required"),
   surname: z.string().min(1, "Surname is required"),
   email: z.string().email("Invalid email address"),
-  phone: z.string()
-    .length(10, "Phone number must be exactly 10 characters.")
-    .startsWith('0', "Phone number must start with 0."),
+  phone: z.string(),
   score: z.coerce.number().int().min(0, "Score must be a positive number"),
   company: z.string().optional().nullable(),
   region: z.string().min(1, "Region is required"),

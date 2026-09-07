@@ -59,7 +59,7 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
       name: "",
       surname: "",
       email: "",
-      phone: "0",
+      phone: "",
       score: "",
       company: "",
       region: "",
@@ -68,6 +68,7 @@ export function AddPlayerForm({ onFormSubmitted }: AddPlayerFormProps) {
   });
 
   const sendDethroneMessage = async (player: Player) => {
+    if (!player.phone) return;
     const message = `⚡ *Fairtree leaderboard update*
 
 You’ve been challenged and knocked off your spot! 💥 True *excellence* isn’t found at the finish line; it’s in coming back stronger. 
@@ -240,9 +241,6 @@ _Fairtree. Values-driven Investing._`;
               <FormControl>
                 <Input type="tel" placeholder="0821234567" {...field} />
               </FormControl>
-              <FormDescription>
-                Must be exactly 10 digits starting with 0.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

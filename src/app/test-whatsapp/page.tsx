@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function TestWhatsappPage() {
     const { toast } = useToast();
-    const [phone, setPhone] = useState('0');
+    const [phone, setPhone] = useState('');
     const [template, setTemplate] = useState<'success' | 'failure' | 'leaderboard'>('success');
     const [loading, setLoading] = useState(false);
 
@@ -73,9 +73,6 @@ export default function TestWhatsappPage() {
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                         />
-                        <p className="text-xs text-muted-foreground">
-                            Must be exactly 10 digits starting with 0.
-                        </p>
                     </div>
 
                     <div className="space-y-2">
